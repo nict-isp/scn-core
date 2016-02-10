@@ -1,11 +1,11 @@
 ============
-DSN記述言語
+DSN description language
 ============
 
-DSNの基本構造
+Basic structure of DSN
 ==============
 
-DSNは、 ``state do`` ブロックと ``bloom do`` ブロックにより構成されます。
+DSN consists of ``state do`` block and ``bloom do`` block.
 
 ::
 
@@ -18,28 +18,28 @@ DSNは、 ``state do`` ブロックと ``bloom do`` ブロックにより構成�
     end
 
 
-state doブロック
+State do Block
 =================
 
-``state do`` ブロックでは、サービスを定義します。
+``State do`` block defines service.
 
 
 **@service_name**
 
-``discovery`` で指定した条件にマッチするサービスを検索し、 ``@service_name`` でサービス名を定義します。
+It searches services to match the service specified by ``discovery``, and defines the service
+name by ``@service_name``.
 
 ::
 
     @service_name: discovery(attr_name=attr_value, attr_name=attr_value, ...)
 
-*  ``attr_name`` : (文字列) 検索対象の任意の属性名
-*  ``attr_value`` : (文字列) 検索対象の任意の属性値
+*  ``attr_name`` : (string) Arbitrary attribute name of search target
+*  ``attr_value`` : (string) Arbitrary attribute value of search target
 
 
-``attr_name=attr_value`` を複数記述した場合は、AND条件として扱います。
-条件を満たすサービスが複数ある場合は、そのサービスが稼働しているノードの資源に最も余裕のあるものが選択されます。
+When ``attr_name=attr_value`` is written multiple times, it will be handled as an AND condition. When there are several services that match the condition, the one that has the most resources at the node on which the service is running will be chosen.
 
-以下の例では、 ``category`` 属性の値が ``sensor`` 、かつ ``type`` 属性の値が ``twitter`` であるサービスを ``@twitter`` と定義します。
+In the following example, define the service with the value of ``category`` attribute as the ``sensor`` and the value of the ``type`` attribute of ``twitter`` as ``@twitter``.
 
 ::
 
@@ -48,17 +48,17 @@ state doブロック
 
 **scratch**
 
-``scratch`` は、 ``@service_name`` をデータ送信サービスとしてスクラッチ名を定義します。
+``Scratch`` defines scratch name as ``@service_name`` for a data transmission service.
 
 ::
 
     scratch: scratch_name, @service_name
 
-*  ``scratch_name`` : (文字列) 任意のスクラッチ名
-*  ``@service_name`` : (文字列) 定義されたサービス名
+*  ``scratch_name`` : (string) Arbitrary scratch name
+*  ``@service_name`` : (string) Defined service name
 
 
-以下の例では、 ``@twitter`` サービスをデータ送信サービスとして ``s_twitter`` と定義します。
+In the following example, it defines ``@twitter`` service as ``s_twitter`` as a data transmission service.
 
 ::
 
@@ -67,17 +67,17 @@ state doブロック
 
 **channel**
 
-``channel`` は、 ``@service_name`` をデータ受信サービスとしてチャネル名を定義します。
+``Channel`` defines the channel name as ``@service_name`` as a data receiving service.
 
 ::
 
     channel: channel_name, @service_name
 
-*  ``channel_name`` : (文字列) 任意のチャネル名
-*  ``@service_name`` : (文字列) 定義されたサービス名
+*  ``channel_name`` : (string) Arbitrary channel name
+*  ``@service_name`` : (string) Defined service name
 
 * 
-以下の例では、 ``@store`` サービスをデータ受信サービスとして ``c_store`` と定義します。
+In the following example, it defines ``@store`` service as ``c_store`` as a data receiving service.
 
 ::
 
@@ -85,102 +85,95 @@ state doブロック
 
 
 
-bloom doブロック
+bloom do block
 =================
 
-``bloom do`` ブロックでは、データフローおよびイベントを定義します。
+At the ``bloom do`` , it defines the data flow and event.
 
 
-データフロー
+Data flow
 -------------
 
-データフローは ``<~`` で定義します。
-``scratch_name`` が送信したデータを、 ``channel_name`` で受信する場合、以下のように記述します。
+Data flow is defined as ``<~`` . When receiving data that was sent by ``scratch_name`` at ``channel_name``, describe it as follows.
+
 
 ::
 
     channel_name <~ scratch_name
 
-*  ``channel_name`` : (文字列) 定義されたチャネル名
-*  ``scratch_name`` : (文字列) 定義されたスクラッチ名
+*  ``channel_name`` : (string) Defined channel name
+*  ``scratch_name`` : (string) Defined scratch name
+
 
 
 
 In-Networking Data Processing
 ------------------------------
 
-.. _M2Mデータフォーマット: https://github.com/nict-isp/uds-sdk/blob/master/docs/refs/m2m/v102.rst
+.. _M2M data format: https://github.com/nict-isp/uds-sdk/blob/master/docs/refs/m2m/v102.rst
 
-データフローに対し、In-Networking Data Processingを指定することができます。
-SCNミドルウェアで送受信するデータは `M2Mデータフォーマット`_ であるため、
-DSN記述は、 `M2Mデータフォーマット`_ を扱うことを前提とした定義になっています。
+In-Networking Data Processing can be specified to the data flow. Because the data that are sent and received by SCN-Middleware are in `M2M data format`_ , the definition for DSN description is presumed to handle the `M2M data format`_.
 
 
-**フィルタリング**
 
-データのフィルタリングは ``filter()`` で定義します。
-``scratch_name`` から送信したデータのうち、指定した条件を満たすデータのみを  ``channel_name`` へ送信します。
+**Filtering**
+
+Data filtering is defined by ``filter()``. Among the data that were sent from ``scratch_name``, only those that match the specified condition will be sent to ``channel_name``.
 
 ::
 
     channel_name <~ scratch_name.filter(filter_conditions)
 
 
-``filter_conditions`` の指定には、以下を使用します。
+To specify ``filter_conditions`` , use the following.
 
 
 .. _conditions:
 
 =======================================  ==============================================================================================================
-項目                                     内容
+Item                                     Description
 =======================================  ==============================================================================================================
-算術比較                                 ``>`` 、 ``>=`` 、 ``==`` 、 ``!=`` 、 ``<=`` 、 ``<``
-like(data_name, regex)                   ``data_name`` の値（文字列のみ指定可能）と、 ``regex`` (Ruby準拠)とのパターンマッチングを行ないます。
-range(data_name, min_value, max_value)   ``min_value <= data_name`` の算術比較と、 ``data_name < max_value`` の算術比較がどちらも真の時、真を返します。
-not                                      ``like()`` と ``range()`` の頭に付与することで、条件の否定を表します。算術比較には使用できません。
+Arithmetic comparison                    ``>`` 、 ``>=`` 、 ``==`` 、 ``!=`` 、 ``<=`` 、 ``<``
+like(data_name, regex)                   It performs pattern matching between ``data_name`` value (only string can be specified) and ``regex`` (Ruby compliance)
+range(data_name, min_value, max_value)   When the arithmetic comparison between ``min_value <= data_name`` and ``data_name < max_value are`` both true, it returns true.
+not                                      By adding to the head of ``like()`` and ``range()``, it means the negative of the condition.
 =======================================  ==============================================================================================================
 
 
-条件を ``&&`` や ``||`` で繋ぐことで、複合条件を記述できます。
-また、条件を ``( )`` で括ることで、優先順位をつけることができます。
+By connecting the conditions with ``&&`` or ``||`` , compound conditions can be described.
+Furthermore, by enclosing the conditions between parentheses, a priority can be set.
 
-
-以下の例では、 ``s_panda`` の送信データに含まれる ``avg_rainfall`` の値が ``25`` 以上、かつ
-``latitude`` の値が ``134.0`` 以上 ``136.0`` 未満のデータのみを ``c_store`` へ送信します。
-
+In the following example, it only sends data to ``c_store`` when the value of ``avg_rainfall`` that is contained in the sending data of ``s_panda`` is greater than ``25``, and the value of ``latitude`` is greater than ``134.0`` and less than ``136.0`` .
 ::
 
     c_store <~ s_panda.filter(avg_rainfall >= 25 && range(latitude, 134.0, 136.0))
 
 
-以下の例では、 ``s_twitter`` の送信データに含まれる ``tweet`` の値に、 ``豪雨`` または
-``暴風`` の文字列が含まれるデータのみを ``c_store`` へ送信します。
+In the following example, it only sends data that includes the strings of ``heavy rain`` or ``wind storm`` in
+the value of a ``tweet`` that is contained in the sending data of ``s_twitter`` to ``c_store``
 
 ::
 
-    c_store <~ s_twitter.filter(like(tweet, ".*豪雨*.") || like(tweet, ".*暴風*."))
+    c_store <~ s_twitter.filter(like(tweet, ".*heavy rain*.") || like(tweet, ".*wind storm*."))
 
 
-**時間による間引き**
+**Culling by time**
 
-時間によるデータの間引きは、 ``cull_time()`` で定義します。
-``scratch_name`` から送信したデータについて、指定した時間条件でデータを間引き、 ``channel_name`` へ送信します。
+Culling data by time is defined by ``cull_time()``. The data sent from ``scratch_name`` are sent to ``channel_name`` after being culled by the specified time condition.
 
 ::
 
     channel_name <~ scratch_name.cull_time(numerator, denominator, time(time, start_time, end_time, time_interval, time_unit))
 
-*  ``numerator`` : (整数) 間引き率の分子
-*  ``denominator`` : (整数) 間引き率の分母
-*  ``start_time`` : (yyyy/mm/ddThh:mm:ss) 間引き対象のデータの開始時刻
-*  ``end_time`` : (yyyy/mm/ddThh:mm:ss) 間引き対象のデータの終了時刻
-*  ``time_interval`` : (整数) 間引き対象の時間間隔
-*  ``time_uni`` : (day|hour|minute|second) time_intervalの単位
+*  ``numerator`` : (integer) Numerator of culling rate
+*  ``denominator`` : (integer) Denominator of culling rate
+*  ``start_time`` : (yyyy/mm/ddThh:mm:ss) Start time of the data that are to be culled
+*  ``end_time`` : (yyyy/mm/ddThh:mm:ss) End time of the data that are to be culled
+*  ``time_interval`` : (integer) Time interval of culling
+*  ``time_uni`` : (day|hour|minute|second) unit of time_interval
 
 
-以下の例では、 ``s_panda`` の送信データに含まれる ``time`` の値を間引き対象とし、
-``2015/01/01/T00:00:00`` から ``2015/03/31T23:59:59`` の範囲において、
-``30 second`` 間隔で ``10`` 分の ``1`` に間引いたデータを ``c_store`` へ送信します。
+In the following example, it sets the value of time that is included in the sending data of ``s_panda`` to be culled, and sends the data to`` c_store`` after culling it by ``one-tenth`` with ``30 s`` in the range of ``2015/01/01/T00:00:00`` and ``2015/03/31/T23:59:59`` .
 
 ::
 
@@ -188,28 +181,28 @@ not                                      ``like()`` と ``range()`` の頭に付
 
 
 
-**空間による間引き**
+**Culling by space**
 
-空間によるデータの間引きは、 ``cull_space()`` で定義します。
-``scratch_name`` から送信したデータについて、指定した空間条件でデータを間引き、 ``channel_name`` へ送信します。
+Culling data by space is defined by ``cull_space()``. The data sent from ``scratch_name`` are culled by the specified space condition and are sent to ``channel_name`` .
 
 ::
 
     channel_name <~ scratch_name.cull_space(numerator, denominator, space(latitude, longitude, west, south, east, north, lat_interval, long_interval))
 
-*  ``numerator`` : (整数) 間引き率の分子
-*  ``denominator`` : (整数) 間引き率の分母
-*  ``west`` : (小数) 間引き空間の最西の経度
-*  ``sourh`` : (小数) 間引き空間の最南の緯度
-*  ``east`` : (小数) 間引き空間の最東の経度
-*  ``north`` : (小数) 間引き空間の最北の緯度
-*  ``lat_interval`` : (整数) 間引き対象の緯度間隔
-*  ``long_interval`` : (整数) 間引き対象経度間隔
+*  ``numerator`` : (integer) Numerator of the culling rate
+*  ``denominator`` : (integer) Denominator of the culling rate
+*  ``west`` : (decimal fraction) Westernmost longitude of the culling space
+*  ``sourh`` : (decimal fraction) Southernmost latitude of the culling space
+*  ``east`` : (decimal fraction) Easternmost longitude of the culling space
+*  ``north`` : (decimal fraction) Northernmost latitude of the culling space
+*  ``lat_interval`` : (integer) Latitude interval of culling target
+*  ``long_interval`` : (integer) Longitude interval of culling target
 
 
-以下の例では、 ``s_panda`` の送信データに含まれる ``latitude`` と ``longitude`` の値を間引き対象とし、
-緯度 ``20.0`` から ``45.0`` 、経度 ``122.0`` から ``153.0`` の範囲において、
-緯度を ``0.1`` 度、経度を ``0.3`` 度間隔で ``10`` 分の ``1`` に間引いたデータを ``c_store`` へ送信します。
+In the following example, it targets the value of latitude and longitude that are contained
+in the sending data of ``s_panda`` to be culled, and sends to ``c_store`` the data that are culled
+by ``one-tenth`` with the interval of ``0.1`` degree for ``latitude`` and the interval of ``0.3`` degree for
+``longitude`` in the range of latitude ``20.0`` to ``45.0`` and longitude ``122.0`` to 153.0`` .
 
 ::
 
@@ -217,52 +210,51 @@ not                                      ``like()`` と ``range()`` の頭に付
 
 
 
-**時空間による集約**
+**Aggregation by time and space**
 
-データの集約は、 ``aggregate()`` で定義します。
-``scratch_name`` から送信したデータを時空間でグループ化し、集約した以下のデータを、 ``channel_name`` へ送信します。
+Aggregation of data is defined by ``aggregate()``. It groups the data by time and space that are sent from ``scratch_name`` . It then sends the following aggregated data to ``channel_name``.
 
 
-====== =====================================
-項目   内容
-====== =====================================
-max    グループ化された範囲のデータの最大値
-min    グループ化された範囲のデータの最小値
-avg    グループ化された範囲のデータの平均値
-sum    グループ化された範囲のデータの合計値
-count  グループ化された範囲のデータ数
-====== =====================================
+====== ===============================================
+Item   Description
+====== ===============================================
+max    Max value of the data in the grouped range
+min    Min value of the data in the grouped range
+avg    Average value of the data in the grouped range
+sum    Sum of the data in the grouped range
+count  Count of the data in the grouped range
+====== ===============================================
 
 
 ::
 
     channel_name <~ scratch_name.aggregate(data_name, time(time, start_time, end_time, time_interval, time_unit), space(latitude, longitude, west, south, east, north, lat_interval, long_interval)
 
-*  ``data_name`` : (文字列) ``scratch_name`` から送信されたデータに含まれるデータ名
-*  ``start_time`` : (yyyy/mm/ddThh:mm:ss) 集約の開始時刻
-*  ``end_time`` : (yyyy/mm/ddThh:mm:ss) 集約の終了時刻
-*  ``time_interval`` : (整数) 集約する時間間隔
-*  ``time_uni`` : (day|hour|minute|second) time_intervalの単位
-*  ``west`` : (小数) 集約空間の最西の経度
-*  ``sourh`` : (小数) 集約空間の最南の緯度
-*  ``east`` : (小数) 集約空間の最東の経度
-*  ``north`` : (小数) 集約空間の最北の緯度
-*  ``lat_interval`` : (整数) 集約する緯度間隔
-*  ``long_interval`` : (整数) 集約する経度間隔
+*  ``data_name`` : (string) Data name that is included in the sent data from scratch_name.
+*  ``start_time`` : (yyyy/mm/ddThh:mm:ss) Start time of aggregation
+*  ``end_time`` : (yyyy/mm/ddThh:mm:ss) End time of aggregation
+*  ``time_interval`` : (integer) Time interval of aggregation
+*  ``time_uni`` : (day|hour|minute|second) Unit of time_interval
+*  ``west`` : (decimal fraction) Westernmost longitude of the aggregation space
+*  ``sourh`` : (decimal fraction) Southernmost latitude of the aggregation space
+*  ``east`` : (decimal fraction) Easternmost longitude of the aggregation space
+*  ``north`` : (decimal fraction) Northernmost latitude of the aggregation space
+*  ``lat_interval`` : (integer) Latitude interval to aggregate
+*  ``long_interval`` : (integer) Longitude interval to aggregate
 
 
-以下の例では、 ``s_panda`` の送信データに含まれる ``avg_rainfall`` の値を、
-``2015/01/01/T00:00:00`` から ``2015/03/31T23:59:59`` の範囲において、
-``30 second`` 間隔で ``10`` 分の ``1`` に集約し、
-緯度 ``20.0`` から ``45.0`` 、経度 ``122.0`` から ``153.0`` の範囲において、
-緯度を ``0.1`` 度、経度を ``0.3`` 度の間隔で集約したデータを ``c_store`` へ送信します。
+In the following example, it aggregates the value of ave_rainfall that is contained in the
+sent data of ``s_panda`` by one-tenth with ``30 s`` interval in the range of
+``2015/01/01/T00:00:00`` and ``2015/03/31T23:59:59`` , and sends to ``c_store`` the data that are
+aggregated by ``0.1`` degree in latitude and ``0.3`` degree in longitude in the range of latitude:
+``20,0`` to ``45.0`` and longitude: ``122.0`` to ``153.0``.
 
 ::
 
     c_store <~ s_panda.aggregate(avg_rainfall, time(time, "2015/01/01T00:00:00", "2015/03/20T23:59:59", 30, "second"), space(latitude, longitude, 122.0, 20.0, 153.0, 45.0, 0.1, 0.3))
 
 
-集約後のデータは、以下の形式になります。
+After aggregation, the data format will be as follows.
 
 ::
 
@@ -289,77 +281,73 @@ count  グループ化された範囲のデータ数
 
 **QoS**
 
-データのQoSは、 ``qos()`` で定義します。
-``scratch_name`` のデータを指定されたQoSで ``channel_name`` へ送信します。
-ただし、ここで指定したQoSの数値を必ず保障するというものではありません。
+Data QoS is defined by ``qos()``. The data of ``scratch_name`` are sent by the specified QoS to ``channel_name``. However, it does not mean that it guarantees the value of the specified 
 
 ::
 
     channel_name <~ scratch_name.qos(qos_value)
 
-*  ``qos_value`` : (整数) 要求するQoSの値(単位：bps)
+*  ``qos_value`` : (integer) QoS value to request (unit: bps)
 
 
-以下の例では、 ``s_panda`` の送信レートが少なくとも ``1Mbps`` になるよう、 ``c_store`` へ送信します。
+In the following example, it sends a request to ``c_store`` to the transmission rate of ``s_panda`` becomes at least ``1 Mbps``.
 
 ::
 
     c_store <~ s_panda.qos(1024000)
 
 
-**メタ情報の付与**
+**Adding Meta information**
 
-メタ情報として、データを格納するテーブル名を、 ``meta()`` で定義することができます。
-``Table=table_name`` と定義することで、 ``scratch_name`` の送信データを ``channel_name``
-を通して ``table_name`` で指定したテーブル名に格納します。
-この時、 ``channel_name`` で指定するチャネルには、データストア用のサービスを指定する必要があります。
+As Meta information, a table name that stores data is defined by ``meta()``. By defining ``Table=table_name`` , it stores the sending data of ``scratch_name`` in the table name specified by ``table_name`` through channel name. At this time, for the channel that is specified by ``channel_name``, it requires designation of the service for storing data.
 
 ::
 
     channel_name <~ scratch_name.meta(Table=table_name)
 
-*  ``table_name`` : (文字列) 任意のテーブル名
+*  ``table_name`` : • (string) Arbitrary table name
 
-以下の例では、 ``s_panda`` の送信データが ``c_store`` を介して ``PANDA_SENSORE`` テーブルへ格納されます。
+In the following example, the sending data of ``s_panda`` is stored in ``PANDA_SENSORE`` table via ``c_store``.
 
 ::
 
     c_store <~ s_panda.meta(Table=PANDA_SENSOR)
 
 
-イベント
+Event
 =========
 
-トリガー
+Trigger
 ---------
 
-イベントのトリガーは、以下で定義します。
+Trigger of the event is defined by the following.
 
-*  ``<+`` (イベント立ち上げ)
-*  ``<-`` (イベント立ち下げ)
-*  ``<+-`` (イベント立ち上げ/立ち下げ)
+*  ``<+`` (Starting event)
+*  ``<-`` (Ending event)
+*  ``<+-`` (Starting/ending event)
 
-``channel_name`` が、 ``trigger_interval`` 内に受信した ``conditions`` の条件を満たすデータ数が
-``trigger_condtions`` を満たした時、
-``<+`` では ``event_name`` を ``on`` 、 ``<-`` では ``off`` 、 ``<+-`` では ``on`` または ``off`` にします。
+
+When the data count that matches the ``conditions`` of conditions that are received in
+``trigger_interval`` meets ``trigger_conditions``, ``channel_name`` makes ``event_name`` ``on`` in case
+of ``<+`` , ``off`` in case of ``<-`` , and ``on`` or ``off`` in case of ``<+-`` .
 
 ::
 
     event_name <+ channel_name.trigger(trigger_interval, trigger_condtions, condiions)
 
-*  ``event_name`` : (文字列) 任意のイベント名
-*  ``trigger_interval`` : (整数) イベント立ち上げ/立ち下げ条件の周期
-*  ``trigger_conditions`` :  :ref:`conditions<conditions>` で指定可能な条件
-*  ``conditions`` :  :ref:`conditions<conditions>` で指定可能な条件
+*  ``event_name`` : (string) Arbitrary event name
+*  ``trigger_interval`` : (integer) Interval of starting/ending event conditions
+*  ``trigger_conditions`` :  :ref:`conditions<conditions>` that can be specified by conditions
+*  ``conditions`` :  :ref:`conditions<conditions>` that can be specified by conditions
 
 
-イベントブロック
+Event block
 -----------------
 
-イベントブロックは、 ``bloom do`` ブロック内に記述します。
+Event block is to be described in the ``bloom do`` block.
 
-``event_name.on do`` ブロックは ``event_name`` が ``on`` の場合に有効になり、
-``event_name.off do`` ブロックは、 ``event_name`` が ``off`` の場合に有効となる。
+``event_name.on`` do block becomes effective when ``event_name`` is ``on`` ; ``event_name.off`` do
+block becomes effective when ``event_name`` is ``off`` .
 
 ::
 
@@ -374,11 +362,12 @@ count  グループ化された範囲のデータ数
     end
 
 
-*  ``event_name`` : (文字列) 任意のイベント名
+*  ``event_name`` : (string) Arbitrary event name
 
 
-以下の例では、 ``c_store`` が ``30`` 秒間に ``130`` 個以上データを受信した際に、 ``heavy_rain`` イベントが発火し、
-``s_twitter`` と ``s_traffic`` のデータを収集します。
+In the following event, when ``c_store`` receives more than ``130`` data within ``30 s``,
+``heavy_rain`` event is triggered. Then ``s_twitter`` and ``s_traffic`` data are collected.
+
 
 ::
 
@@ -394,19 +383,20 @@ count  グループ化された範囲のデータ数
 
 
 
-特別な記述方法
+Special description method
 ===============
 
-複数のIn-Network Data Processingの実行定義
+Execution definition of multiple In-Network Data Processing
 -------------------------------------------
 
-1つのデータフローで複数のIn-Network Data Processingを定義する際は、以下のようにProcessingの定義を ``.`` で連結します。
+When defining several In-Network Data Processing with one data flow, connect the definition of processing with ``.`` as shown below.
+
 
 ::
 
     channel_name <~ scratch_name.filter(xxx).cull_time(xxx)
 
-以下の例では、はじめにフィルタリングが実施され、その後時間による間引きが実施されます。
+In the following example, filtering is performed first. Then culling by time is done.
 
 ::
 
@@ -414,14 +404,13 @@ count  グループ化された範囲のデータ数
 
 
 
-複数の@serviceの定義
+Definition of several @service
 ---------------------
 
-通常、 ``@service_name`` では、 条件にマッチした1つのサービスが定義されますが、 ``discovery`` の条件に
-``multi=multi_num`` を指定することで、条件にマッチした複数のサービスを定義することができます。
+Normally at ``@service_name`` , one service that matches the condition is defined. However, multiple services that match the condition are definable by designating ``multi=multi_num`` in the condition of ``discovery`` .
 
-以下の例では、 ``multi=3`` の定義により、検索にマッチした3つのサービスが ``@store`` に定義されます。
-そして、 ``bloom do`` ブロックで ``c_store <~ s_twitter`` と定義するだけで、1対3のデータフローが定義されます。
+
+In the following example, by the definition of ``multi=3``, three services that match the search are defined in ``@store``. Furthermore, in the ``bloom do`` block, merely by defining ``c_store <~ s_twitter``, data flow of one to three is definable.
 
 ::
 
@@ -443,17 +432,16 @@ count  グループ化された範囲のデータ数
                  +---> c_store
 
 
-送信元サービス、送信先サービスの ``multi`` の値の組み合わせによるデータフローのパターンを示します。
-
+Data flow patterns by the combination of the value of ``multi`` of the data transmission source and destination service are shown below.
 ::
 
-    [1対1]
+    [one to one]
         @scratch: discovery(aaa=bbb, multi=1)
         @channel: discovery(xxx=yyy, multi=1)
 
             s_scratch -------> c_channel
 
-    [1対多]
+    [one to multi]
         @scratch: discovery(aaa=bbb, multi=1)
         @channel: discovery(xxx=yyy, multi=3)
 
@@ -463,7 +451,7 @@ count  グループ化された範囲のデータ数
                          |
                          +---> c_channel
 
-    [多対1]
+    [multi to one]
         @scratch: discovery(aaa=bbb, multi=3)
         @channel: discovery(xxx=yyy, multi=1)
 
@@ -473,7 +461,7 @@ count  グループ化された範囲のデータ数
                          |
             s_scratch ---+
 
-    [多対多(送信サービス数 = 受信サービス数)]
+    [multi to multi (sending service count = receiving service count)]
         @scratch: discovery(aaa=bbb, multi=3)
         @channel: discovery(xxx=yyy, multi=3)
 
@@ -481,7 +469,7 @@ count  グループ化された範囲のデータ数
             s_scratch -------> c_channel
             s_scratch -------> c_channel
 
-    [多対多(送信サービス数 < 受信サービス数)]
+    [multi to multi (sending service count < receiving service count)]
         @scratch: discovery(aaa=bbb, multi=2)
         @channel: discovery(xxx=yyy, multi=4)
 
@@ -492,7 +480,7 @@ count  グループ化された範囲のデータ数
                          |
                          +---> c_channel
 
-    [多対多(送信サービス数 < 受信サービス数)]
+    [multi to multi (sending service count < receiving service count)]
         @scratch: discovery(aaa=bbb, multi=3)
         @channel: discovery(xxx=yyy, multi=4)
 
@@ -502,7 +490,7 @@ count  グループ化された範囲のデータ数
                          |
                          +---> c_channel
 
-    [多対多(送信サービス数 > 受信サービス数)]
+    [multi to multi (sending service count > receiving service count)]
         @scratch: discovery(aaa=bbb, multi=4)
         @channel: discovery(xxx=yyy, multi=2)
 
@@ -513,7 +501,7 @@ count  グループ化された範囲のデータ数
                          |
             s_scratch ---+
 
-    [多対多(送信サービス数 > 受信サービス数)]
+    [multi to multi (sending service count > receiving service count)]
         @scratch: discovery(aaa=bbb, multi=4)
         @channel: discovery(xxx=yyy, multi=3)
 
@@ -523,13 +511,4 @@ count  グループ化された範囲のデータ数
                          |
             s_scratch ---+
 
-
-.. **ID**
-
-.. IDの指定には、 ``id`` を使用します。
-.. データフローに指定したIDを割当てます。
-
-.. ::
-
-..     channel_name <~ scratch_name.id()
 

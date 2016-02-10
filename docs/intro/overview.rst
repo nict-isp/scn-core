@@ -1,9 +1,9 @@
 ========
-SCNとは
+What is SCN?
 ========
-* SCN(Service-Controlled Networking)とは、アプリケーション要求に応じてネットワーク資源を自動構成し、アプリケーションを構成する様々な情報サービスを効率よく連携させることを可能とする技術です。
-* これにより、様々な分野のセンサーデータやソーシャルデータを横断的に分析し、新たな価値を見出すサービスを動的に構成することができます。
-* また、センサーデータにより突発的に生じたイベントを検出すると、その周辺の様々な情報を収集するセンサーデータを集中的に収集解析することができます。
+* Service-Controlled Networking (SCN) is the technology that provides the capability to configure network resources automatically according to the application requests, and to cooperate efficiently with various information services that configure applications.
+* This enables the user to analyze sensor data or social data cross-sectionally in various fields, and to create services that discover new value.
+* Furthermore, when an unexpected event is detected using sensor data, it enables intensive collection and analysis of sensor data from various information collected around the area.
 
 
 .. image:: ./img/fig-overview-1.png
@@ -13,13 +13,13 @@ SCNとは
 ![](./img/fig-overview-1.png)
 
 
-SCNの特長
+Features of SCN
 ==========
 
-サービス検索/サービス連携
+Service search/Service cooperation
 --------------------------
-* 各ノード上で分散稼働している情報サービスの中から、指定された検索条件にマッチする情報サービスを発見することができます。
-* また、発見した情報サービスを連携させ、必要なデータを必要な量だけ収集することができます。
+* It enables the user to find an information service that matches the specified search criteria from among the information services that are running separately on each node.
+* Additionally, by cooperating with the information services found, it enables the user to collect as much data as necessary.
 
 .. image:: ./img/fig-overview-2.png
       :width: 600px
@@ -27,25 +27,26 @@ SCNの特長
 
 In-Network Data Processing
 ---------------------------
-* 情報サービスを連携させ、データを収集する際に、ネットワーク上でフィルタリングや集約などの処理を実施することができます。
-* Channel functionを実行する最適なノードを割り当て、そのノードを経由する経路をルーティングすることができます。
+* When collecting data in cooperation with information services, it enables the user to perform processes such as filtering or compilation on the network.
+* It enables the user to assign the optimum node to execute a Channel function, and to perform routing of a route that passes through the node.
 
 .. image:: ./img/fig-overview-3.png
       :width: 600px
       :align: center
 
-データ通信経路制御
+Data communication route control
 -------------------
-* ネットワーク上で輻輳が発生した場合、輻輳を回避するよう動的にデータの通信経路を切り替えることができます。
+* When congestion occurs on the network, it provides the capability of switching the data communication route dynamically to avoid congestion.
 
 .. image:: ./img/fig-overview-4.png
       :width: 600px
       :align: center
 
 
-サービス検索/サービス連携の宣言的定義
+Declarative definition of Service search/Service cooperation
 --------------------------------------
-* サービス検索およびサービス連携の情報を、以下のようなDSN(Declarative Service Networking)により宣言的に定義することができます。
+* It enables the user to define the information of service search and service cooperationdeclaratively with the following Declarative Service Networking (DSN).
+
 
 ::
 
@@ -71,7 +72,7 @@ In-Network Data Processing
 
 
 
-SCNの開発について
+About SCN development
 ==================
-SCNは、国立研究開発法人 情報通信研究機構 情報利活用基盤研究室(http://nict.go.jp/univ-com/isp/index.html)
-によって開発されているオープンソースプロジェクトです。
+SCN is an open source project that is being developed by Information Services Platform Laboratory in National Institute of Information and Communications Technology (http://nict.go.jp/univ-com/isp/index.html).
+

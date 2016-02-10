@@ -1,28 +1,27 @@
 ===============
-アーキテクチャ
+Architecture
 ===============
 
-SCNの構成
+SCN architecture
 ==========
 
-* SCNは、 **アプリケーションレイヤ** 、 **ミドルウェアレイヤ** 、 **ネットワークレイヤ** の3レイヤに分かれています。
+* SCN has three layers: an **Application layer** , **Middleware layer** , and **Network layer**
 
-アプリケーションレイヤ
+Application layer
 -----------------------
-* アプリケーションレイヤでは情報サービスが稼働し、様々なデータソースからデータを収集します。
-* 「このようなデータが欲しい」という要求をDSNで定義し、SCNミドルウェアに対して入力します。
+* In the application layer, information services operate and collect data from various data sources.
+* Define the request of “I want data like this” in DSN and output it to SCN middleware.
 
-ミドルウェアレイヤ
+Middleware layer
 -------------------
-* ミドルウェアレイヤはSCN Coreが稼働し、アプリケーションレイヤから受け取ったDSNを解釈および実行し
-  イベント検出やIn-Network Data Processingを行います。
-* DSNで定義された内容に従い、サービス検索やサービス連携の管理を行います。
-* また、アプリケーションレイヤから受け取ったデータを送信する際のパスの計算や生成を行います。
+* The middleware layer is run by the SCN Core. It translates and executes the DSN received from the application layer, and performs event detection or In-Network Data Processing.
+* It manages the service search or service cooperation according to the description defined by DSN.
+* Additionally, it calculates and creates a path for sending data that are received fromthe application layer.
 
-ネットワークレイヤ
+Network layer
 -------------------
-* ネットワークトポロジの検出やネットワークトラフィックの監視を行います。
-* 要求されたQoSを満たすよう、ネットワークトラフィックに応じてフローを動的に切り替えます。
+* It detects network topology or monitors network traffic.
+* It switches a flow dynamically according to the network traffic to meet the requested QoS.
 
 .. image:: img/fig-architecture-1.png
       :width: 500px
@@ -30,17 +29,16 @@ SCNの構成
 
 
 
-SCN Coreの構成
+Architecture of SCN Core
 ===============
-
-* SCN Coreは、 **DSN** 、 **Translator** 、 **NCPS** の3コンポーネントに分かれています。
+* SCN Core consists of three components: **DSN** , **Translator**, and **NCPS** .
 
 .. image:: img/fig-architecture-2.png
       :width: 200px
       :align: center
 
 
-* 各コンポーネントの処理について説明します。
+* See below for the processing of each component.
 
 DSN
 ----
@@ -49,11 +47,9 @@ DSN
       :width: 800px
       :align: center
 
-* DSNは、入力されたDSN記述を解釈し、Translatorに対してサービス検索やサービス連携の生成を指示します。
-* DSN記述に定義されたイベント情報を管理し、Translatorから取得したQoSイベント通知や統計情報から、
-  イベントの発生を判断します。
-* フィルタリングや集約などの、網内データ処理（In-Network Data Processing）を実現します。
-
+* DSN translates the inputted DSN description and sends commands to Translator to create service search or service cooperation.
+* It manages event information that is defined in the DSN description, and judges if an event has occurred or not based on the QoS event notification or statistical information obtained from Translator.
+* It performs data processing in the network (In-Network Data Processing) such as filtering or aggregation.
 
 Translator
 -----------
@@ -62,12 +58,9 @@ Translator
       :width: 800px
       :align: center
 
-* Translatorは、サービス、およびサービス連携の情報を管理します。
-* DSNレイヤからの指示を受け、Translatorで管理しているサービスを検索したり、
-  パスの経路を計算し、NCPSに対して経路の生成を指示します。
-* NCPSに対してネットワーク構造や統計情報を取得し、パスの経路計算に利用したり、
-  DSNに通知してイベントの判定に利用します。
-
+* Translator manages information related to the service and service cooperation.
+* It searches services that are controlled by Translator and calculates path routes after receiving instructions from the DSN layer. Then it sends a command to NCPS to create a route.
+* It acquires a network structure and statistical information against NCPS. Then it uses it for the route calculation of path and sends it to DSN to determine the event.
 
 NCPS
 -----
@@ -76,26 +69,25 @@ NCPS
       :width: 800px
       :align: center
 
-* NCPSは、ネットワーク構造や統計情報を収集し、Translatorへ通知します。
-* Translatorから指示された経路生成の指示に従い、必要なネットワークの設定を実施します。
-* ネットワークレイヤとしてOpenFlowを使用した場合は、SCN OpenFlow Driverに対してフローの設定を指示したりします。
+* NCPS acquires the network structure or statistical information and notifies Translator.
+* It sets necessary network settings according to the path creation request that is sent from Translator.
+* In case OpenFlow is used as network layer, it sends a command to SCN OpenFlow Driver to set a flow or does something.
 
-
-コンフィグ
+Configuration
 ===========
 
-* SCN Coreで設定可能なコンフィグについて説明します。
+* The following is to describe the configuration that can be configured by SCN Core.
 
 
-ログ設定
+Log settings
 ---------
 
-* ログレベルは、以下を指定可能です。
+* Log level can be set as stated below.
 
 =========== ====================================
-ログレベル  出力されるメッセージ
+Log level   Message to be output
 =========== ====================================
-FATAL       FATALのみ
+FATAL       FATAL only
 ERROR       FATAL + ERROR
 WARN        FATAL + ERROR + WARN
 INFO        FATAL + ERROR + WARN + INFO
@@ -104,83 +96,83 @@ DEBUG       FATAL + ERROR + WARN + INFO + DEBUG
 
 ::
 
-  # ログレベル
+  # Log level
   $logger.level = Logger::INFO
 
 
-ログ情報・ステータスの送信先設定
+Sending destination settings of log information/status
 ---------------------------------
 ::
 
-  # fluend設定
+  # fluend setting
   @fluent_port       = 24224
   @fluent_ip_address = "172.18.102.1"
 
 
-アプリケーションとの通信のためのRPC設定
+RPC settings for communication with applications
 ----------------------------------------
 ::
 
-  # RPC初期受信用ポート
+  #  RPC initial receiving port
   @rpc_initial_rx_port = 10000
 
-  # RPC受信用ポート
+  # RPC receiving port
   @rpc_rx_port = 21001
 
-  # RPC送信用基底ポート
+  # RPC sending base port
   @rpc_tx_port_base = 22000
 
-  # RPC送信IPアドレス
+  # RPC sending IP address
   @rpc_ip_address = "127.0.0.1"
 
 
 
-Translatorの動作周期設定
+Translator operation interval settings
 -------------------------
 
 ::
 
-  # ノード情報の送信周期[s]
+  # Node information sending interval [s]
   @statistics_interval = 30
 
 
 
-NCPSのネットワーク種別設定
+NCPS network type settings
 ^^^^^^^^^^^^^^^^^
-* ネットワーク種別は、以下を指定可能です。
+* The network type can be set as described below
 
 ================= =======================================
-ネットワーク種別  説明
+Network Type      Description
 ================= =======================================
-OpenFlow          ネットワークレイヤとしてOpenFlowを使用
-TCP               ネットワークレイヤとしてTCP/IPを使用
+OpenFlow          Use OpenFlow as Network layer
+TCP               Use TCP/IP as Network layer
 ================= =======================================
 
 ::
 
-  # ネットワーク種別
+  # Network type
   $ncps_network = "OpenFlow"
 
 
-データ通信用ポート設定
+Data communication port settings
 ^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-    # データメッセージ用基底ポート
+    # Data message base port
     @data_port_base = 11001
 
-    # データメッセージ用ポートの上限
+    # Upper limit of data message port
     @data_port_max = 20000
 
-    # コントロールメッセージ用ポート
+    # Control message port
     @ctrl_port = 20001
 
 
-SCN OpenFlow Driverとの通信設定
+Communication settings with SCN OpenFlow Driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  # SCN OpenFlow Driverとの通信用ポート
+  # Communication port with SCN OpenFlow Driver
   @cmd_port = 31001
 
 

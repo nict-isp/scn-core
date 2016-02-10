@@ -1,7 +1,7 @@
 ==========
-SCNの起動
+Starting SCN
 ==========
 
 .. note::
-    OpenFlowを使用したSCNの起動方法は、SCN OpenFlow Driver のドキュメントを参照してください。
+    Regarding how to start SCN using OpenFlow, refer to the document of SCN OpenFlow Driver.
 

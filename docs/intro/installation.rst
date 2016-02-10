@@ -1,8 +1,8 @@
 =============
-インストール
+Installation
 =============
 
-依存ライブラリのインストール
+Install dependent libraries
 -----------------------------
 
 .. _Ruby: https://www.ruby-lang.org/
@@ -19,42 +19,38 @@
 .. _tornado: http://www.tornadoweb.org/en/stable/
 
 
-SCN Coreをインストールする前に、以下のライブラリをインストールする必要があります。
+Before installing SCN Core, the following libraries must be installed.
 
-#.  `Ruby`_ バージョン1.9.3。
+#.  `Ruby`_ version 1.9.3.
 
-#.  `rvm`_  Rubyのバージョン管理ツール。
+#.  `rvm`_ Version management tool of Ruby
 
-#.  `msgpack`_ Ruby用の軽量で高速なシリアライズライブラリ。
+#.  `msgpack`_ Light and high-speed serial library for Ruby
 
-#.  `msgpack-rpc`_ Ruby用のMessagePackを利用した非同期なRPCライブラリ。
+#.  `msgpack-rpc`_ Asynchronous RPC library using MessagePack of Ruby
 
-#.  `fluent-logger-ruby`_ Ruby用のFluentdロガーライブラリ。
+#.  `fluent-logger-ruby`_ Fluentd Logger library for Ruby
 
-#.  `Python`_ バージョン2.7。
+#.  `Python`_ Version 2.7
 
-#.  `pip`_ 、 `setuptools`_ Pythonのパッケージ管理ツール。 `setuptools`_ は、 `pip`_ のインストール時に自動でインストールされる。
+#.  `pip`_ , `setuptools`_ Package management tool of Python. `setuptools`_ will be installed automatically when `pip`_ is installed.
 
-#. `msgpack-rpc-python`_ Python用のMessagePack RPCライブラリ。
+#. `msgpack-rpc-python`_ MessagePack RPC library for Python
 
-#. `tornado`_ PythonのWebフレームワークおよび非同期通信ライブラリ。
-
-..
-  *   `bud`_ bloom言語を実行するためのRubyライブラリ。
-  *   `EventMachine`_ イベント駆動型I/Oと軽量な並列処理を行うRubyライブラリ。
+#. `tornado`_ Web framework and asynchronous communication library of Python
 
 
-SCN Coreのインストール
------------------------
+Installation of SCN Core
+------------------------
 
-*  GitHubリポジトリからソースコードをコピーします。
+*  Copy source code from GitHub repository.
 
 ::
 
     $ git clone git://github.com/nict-isp/scn-core.git
 
 
-*  SCN Budのインストール
+*  Install SCN Bud
 
 ::
 
@@ -62,7 +58,7 @@ SCN Coreのインストール
     $ gem install --local scn-bud/bud-0.9.5.gem
 
 
-*  SCN EventMachineのインストール
+*  Install SCN EventMachine
 
 ::
 
@@ -73,20 +69,18 @@ SCN Coreのインストール
     $ cp rubyeventmachine.so ../lib/.
 
 
-プラットフォーム別のインストール手順
+Installation procedure for a platform
 -------------------------------------
 
-Ubuntu 12.0 以上
-^^^^^^^^^^^^^^^^^
+Ubuntu 12.0 or above
+^^^^^^^^^^^^^^^^^^^^
 
-*   `rvm`_ 、 `msgpack`_ 、 `msgpack-rpc`_ 、 `fluent-logger-ruby`_ のインストール。
+*   Install `rvm`_ 、 `msgpack`_ 、 `msgpack-rpc`_ 、 `fluent-logger-ruby`_ .
     ::
 
         $  curl -L https://get.rvm.io | bash -s stable --ruby --gems=msgpack,msgpack-rpc,fluent-logger
 
-*   `msgpack-rpc-python`_ 、 `tornado`_ のインストール。
+*   Install `msgpack-rpc-python`_ 、 `tornado`_ .
     ::
 
         $ sudo pip install msgpack-rpc-python tornado
-
-

@@ -1,8 +1,8 @@
 ==============
-SCNの環境設定
+SCN environment settings
 ==============
 
 .. note::
-    OpenFlowを使用したSCNの環境設定は、SCN OpenFlow Driver のドキュメントを参照してください。
+    Regarding the SCN environment settings using OpenFlow, refer to the document of SCN OpenFlow Driver.
 
 
