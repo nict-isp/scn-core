@@ -36,9 +36,9 @@ $logger.formatter  = Class.new(Logger::Formatter) {
 }.new
 
 # FATAL | ERROR | WARN | INFO | DEBUG
-$logger.level      = Logger::DEBUG
+$logger.level      = Logger::ERROR
 $benchmark         = false
-$trace             = true
+$trace             = false
 
 ###################
 # EventCollector ##
@@ -53,7 +53,7 @@ $trace             = true
 
 # fluend設定
 @fluent_port       = 24224
-@fluent_ip_address = "172.18.100.3"
+@fluent_ip_address = "172.18.102.1"
 
 ##################
 # DSNExecutor #

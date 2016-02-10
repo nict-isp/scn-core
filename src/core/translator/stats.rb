@@ -3,6 +3,7 @@ require 'singleton'
 require 'forwardable'
 require 'json'
 
+require_relative './supervisor'
 require_relative './node_resource'
 require_relative '../utility/collector'
 require_relative '../utility/sync'
@@ -49,7 +50,7 @@ class Stats
         if overlay.nil?
             #TODO 削除メッセージ
         else
-            ApplicationRPCClient.receive_message(overlay_id, JSON.generate(overlay.to_message), overlay.liten_port)
+            overlay.send_message()
         end
     end
 
@@ -87,6 +88,10 @@ class Stats
             begin
                 # 資源情報を更新する。
                 @node_resource = NodeResourceCollector.update()
+
+                # サービス管理ノード宛のノード統計情報を更新する。
+                #TODO 要動作検証につきコメントアウト
+                #Supervisor.update_stats($ip, @node_resource)
 
                 # 統計情報を送信する。
                 EventCollector.statistics_node(@node_resource)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require_relative './service'
+require_relative './service/service'
 require_relative './path_creator'
 require_relative '../utility/collector'
 
@@ -23,6 +23,8 @@ class Channel
     attr_reader :active
     #@return [Array<Paht>] チャネルに紐づくパスの配列
     attr_reader :paths
+    #@return [String] 転送時のチャネル指定（オーバーレイID#チャンネル名）
+    attr_reader :source
 
     #@param [String] id チャネルID
     #@param [ChannelRequest] channel_req アプリケーション要求
@@ -31,6 +33,7 @@ class Channel
         log_trace(id, channel_req)
         @id           = id
         @name         = channel_req["channel"]["name"]
+        @source       = channel_req["scratch"]["channel"]
         @channel_req  = channel_req
         @active       = true
         @path_creater = SimplePathCreator.new(id)
@@ -41,9 +44,9 @@ class Channel
     #
     #@return [void]
     #
-    def create()
+    def create(services)
         log_time()
-        @paths = @path_creater.create(@channel_req)
+        @paths = @path_creater.create(services, @channel_req)
         log_time()
 
         set_retry()
@@ -55,11 +58,13 @@ class Channel
     #@return [void]
     #@raise [ArgumentError] 未サポートのアプリケーション要求が指定された。
     #
-    def update(channel_req = nil)
+    def update(services, channel_req = nil)
         log_debug() {"channel request = \"#{channel_req}\""}
         log_time()
         @channel_req = channel_req unless channel_req.nil?
-        @paths = @path_creater.update(@paths, @channel_req)
+        @name        = channel_req["channel"]["name"]
+        @source      = channel_req["scratch"]["channel"]
+        @paths = @path_creater.update(@paths, services, @channel_req)
         log_time()
 
         set_retry()
@@ -105,19 +110,6 @@ class Channel
         return @paths.find{ |path| path.include_service?(service_id) }
     end
 
-    # サービス情報の更新に伴うパスの再生成を行う
-    #
-    #@param [String] service_id サービスID
-    #@param [Service] service 更新されたサービス（削除時nil）
-    #@return [True] アップデートした
-    #@return [False] アップデートしなかった
-    #
-    def update_service(service_id, service)
-        #TODO サービスが条件を満たさなくなった場合のみupdateするのがよい
-        update()
-        return true
-    end
-
     #@return [Array<String>] チャネル（パス）を構成するノードの一覧
     #
     def get_nodes()
@@ -143,7 +135,7 @@ class Channel
             "link_id"  => @channel_req["id"],
             "scratch"  => @channel_req["scratch"]["name"],
             "channel"  => @channel_req["channel"]["name"],
-            "expected" => expected(),
+            "expected" => @active ? expected() : 0,
             "actual"   => @active ? @paths.size : 0
         }
     end
@@ -163,7 +155,7 @@ class Channel
                     sleep 3
                     Supervisor.update_channel(@id)
                 rescue
-                    log_warn("id: #{@id}, set_retry: #{$!}")
+                    log_error("id: #{@id}, set_retry: #{$!}", $!)
                 end
             end
         end

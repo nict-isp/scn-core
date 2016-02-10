@@ -2,8 +2,9 @@
 require_relative '../../utils'
 require_relative './processing'
 require_relative './filter'
-require_relative './aggregate'
 require_relative './cull'
+require_relative './string'
+require_relative './virtual'
 
 #= 中間処理のファクトリクラス
 #
@@ -21,14 +22,20 @@ class ProcessingFactory
             log_debug {"name = #{name}, param = #{param}" }
 
             case name
-            when "aggregate"
-                proccesing = Aggregate.new(param)
             when "filter"
                 proccesing = Filter.new(param)
             when "cull_time"
                 proccesing = CullTime.new(param)
             when "cull_space"
                 proccesing = CullSpace.new(param)
+            when "string"
+                proccesing = StringOperation.new(param)
+            when "virtual"
+                proccesing = Virtual.new(param)
+
+            # 以下はインナーサービスで直接生成する
+            #when "aggregate"
+            #when "merge"
             else
                 log_warn("undefined processing. (name=#{name})")
                 proccesing = Processing.new({}) # 何もしない

@@ -6,10 +6,12 @@ require_relative './filter_method'
 require_relative './cull_time_method'
 require_relative './cull_space_method'
 require_relative './aggregate_method'
+require_relative './virtual_method'
 require_relative './select_method'
 require_relative './meta_method'
 require_relative './qos_method'
 require_relative './id_method'
+require_relative './string_method'
 
 module DSN
 
@@ -143,7 +145,7 @@ module DSN
         #@param [StateDo] state DSN記述のstate doブロックを管理するインスタンス
         #@example
         #  channel_name <~ scratch_name
-        #  channel_name <~ filter(scratch_name, condtions)等
+        #  channel_name <~ scratch_name.filter(condtions)等
         #@return [Transmission] Transmissionクラスのインスタンス
         #@raise [DSNFormatError] transmission構文として正しくないデータが設定された。
         #
@@ -201,6 +203,10 @@ module DSN
                 method["processing"] = CullSpaceMethod.parse(proc_text)
             when AggregateMethod.match?(proc_text)
                 method["processing"] = AggregateMethod.parse(proc_text)
+            when StringMethod.match?(proc_text)
+                method["processing"] = StringMethod.parse(proc_text)
+            when VirtualMethod.match?(proc_text)
+                method["processing"] = VirtualMethod.parse(proc_text)
             when SelectMethod.match?(proc_text)
                 method["select"]     = SelectMethod.parse(proc_text)
             when MetaMethod.match?(proc_text)

@@ -82,14 +82,14 @@ class M2MFormat
     #@param [Hash] data m2mデータ
     #@return [Float] m2mデータフォーマットのバージョン
     #
-    def self.get_fromat_version(data)
+    def self.get_format_version(data)
         return data["MetaData"]["primary"]["format_version"]
     end
 
     #@param [Hash] data m2mデータ
     #@param [Float] version m2mデータフォーマットのバージョン
     #
-    def self.set_fromat_version(data, version)
+    def self.set_format_version(data, version)
         data["MetaData"]["primary"]["format_version"] = version
     end
 
@@ -152,7 +152,7 @@ class M2MFormat
             end
         end
 
-        set_fromat_version(new_data, 1.02)
+        set_format_version(new_data, 1.02)
         set_values(new_data, values)
 
         return new_data
@@ -165,7 +165,7 @@ class M2MFormat
     #@return [Nil] m2mデータではない時
     #
     def self.get_m2m_version(data)
-        return get_fromat_version(to_m2m_array(data)[0])
+        return get_format_version(to_m2m_array(data)[0])
     rescue
         return nil
     end

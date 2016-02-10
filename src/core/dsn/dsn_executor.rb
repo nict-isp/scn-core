@@ -67,15 +67,7 @@ class DSNExecutor
             raise InvalidIDError, overlay_id
         end
 
-        Thread.new do
-            log_time()
-            begin
-                operator.delete()
-            rescue
-                log_error("Delete overlay(#{operator.id}) failed.", $!)
-            end
-            log_time()
-        end
+        # チャネル等の削除はTranslatorで行われる。
     end
 
     # オーバーレイ変更API

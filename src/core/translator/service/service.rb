@@ -32,19 +32,26 @@ class Service
         @port     = port
     end
 
-    #@return [Hash] Hash化したサービスクラスオブジェクト
-    #
-    def to_hash()
-        hash = Hash.new()
-        hash["id"]   = @id
-        hash["name"] = @name
-        hash["info"] = @info
-        hash["ip"]   = @ip
-        return hash
+    #@see Object#marshal_dump
+    def marshal_dump()
+        # シリアライザブルな状態を保つため、伝播に必要な情報のみをダンプ
+        return [@id, @name, @info, @ip, @port]
     end
 
-    def self.from_hash(hash)
-        return Service.new(hash["id"], hash["name"], hash["info"], hash["ip"])
+    #@see Object#marshal_load
+    def marshal_load(array)
+        @id, @name, @info, @ip, @port = array
+    end
+
+    #@return [Hash] サービス情報
+    #
+    def to_info()
+        return {
+            "id"   => @id,
+            "name" => @name,
+            "info" => @info,
+            "ip"   => @ip,
+        }
     end
 
     #@return [Integer] 単位時間あたりの送信データサイズ(byte/s)

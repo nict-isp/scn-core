@@ -76,6 +76,16 @@ class OverlayManager
     end
 
     #@param [String] overlay_id オーバーレイID
+    #@param [Array<Hash>] merge マージ情報
+    #@return [void]
+    #@raise [InvalidIDError] 指定されたIDが無効の場合
+    #
+    def set_merge(overlay_id, merge)
+        log_trace(overlay_id, merge)
+        operate_overlay(overlay_id){ |overlay| overlay.set_merge(deep_copy(merge)) }
+    end
+
+    #@param [String] overlay_id オーバーレイID
     #@param [ChannelRequest] channel_req チャネル要求
     #@return [String] チャネルID
     #@raise [InvalidIDError] 指定されたIDが無効の場合
@@ -153,6 +163,22 @@ class OverlayManager
         end
     end
 
+    # オーバーレイの実行ログを送信する
+    #
+    #@paran [String] overlay_id 宛先のオーバーレイID
+    #@param [Hash] message メッセージ
+    #@return [void]
+    #
+    def send_message(overlay_id, message)
+        overlay = get_overlay(overlay_id)
+
+        if current_node?(overlay.supervisor)
+            overlay.send_message(message)
+        else
+            send_propagate([overlay.supervisor], PROPAGATE_OVERLAY_MANAGER, "send_message", [overlay_id, message])
+        end
+    end
+
     private
 
     # #{ミドルウェアID}_#{オーバーレイID}
@@ -205,8 +231,10 @@ class OverlayManager
     def propagate(dsts, overlay_id, overlay)
         log_trace(dsts, overlay_id, overlay)
         dsts |= overlay.get_nodes() unless overlay.nil?
+        dsts.delete($ip)
         send_propagate(dsts, PROPAGATE_OVERLAY_MANAGER, "set_overlay", [overlay_id, overlay])
-        
+        set_overlay(overlay_id, overlay)
+
         Stats.set_overlay(overlay_id, overlay)
     end
 

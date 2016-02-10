@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 require_relative './processing'
 
-#@pribate
+#@private
 #= 集約・統合処理定義クラス
 #
 module AggrefateDefine
@@ -23,7 +23,7 @@ module AggrefateDefine
     COUNT = "count"
 end
 
-#= 集約・統合処理クラス
+#= 集約・統合処理クラス（インナーサービス向け）
 #
 #@author NICT
 #
@@ -35,17 +35,47 @@ class Aggregate < Processing
     #
     def initialize(conditions)
         super
-        @name = conditions["data_name"]
-        @time = get_time_info(conditions["time"])
-        @latitude, @longitude = get_space_info(conditions["space"])
+
         reset()
+        update(conditions)
+    end
+
+    # 中間処理要求を更新する。 
+    # 
+    #@param [Hash] conditions 中間処理要求
+    #@return [void]
+    #
+    def update(conditions)
+        @conditions = conditions
+
+        @name  = conditions["data_name"]
+        @delay = conditions["delay"]
+        space = conditions["space"]
+        if space.nil?
+            @latitude, @longitude = [nil, nil]
+        else
+            @latitude, @longitude = get_space_info(space)
+        end
     end
 
     # 集約・統合処理を実施する
-    # 時空間を指定間隔に分割した後、
-    # 同じインデックスを持つデータを集計し、その結果を送信データとする。
+    # 空間を指定間隔に分割した後、同じインデックスを持つデータを集計する。
     #
     #@param [Hash] processing_data 中間処理データ
+    #@retrun [Array] 空データ（いったん集約するため）
+    #
+    def execute(processing_data)
+        processing_values(processing_data, :each) { |value|
+            if @time < time_to_sec(value["time"]) + @delay && value.has_key?(@name)
+                key = get_key(value)
+                @cache[key] << value
+            end
+        }   
+        return []
+    end
+
+    # 蓄積したデータを集計して返す。蓄積したデータはクリアする。
+    #
     #@return 集約・統合処理を行なったデータ
     #@example 集約・統合データ
     #[
@@ -74,62 +104,59 @@ class Aggregate < Processing
     #   }
     #]
     #
-    def execute(processing_data)
-        processing_values(processing_data, :each) { |value|
-            time_index = get_index(@time, value) { |time| time_to_sec(time) }
-            lat_index  = get_index(@latitude, value)
-            long_index = get_index(@longitude, value)
-            next if time_index.nil? || lat_index.nil? || long_index.nil?  # 範囲外は集計しない
+    def get_result()
+        log_trace()
+        result = []
 
-            @temp[time_index][lat_index][long_index] << value[@name]
+        now  = Time.now.to_i
+        info = {
+            START => sec_to_time(@time),
+            ENDE  => sec_to_time(now),
         }
-        return get_result()
+        @cache.each do |(lat, long), values|
+            if @latitude.nil?
+                # 空間の指定がない場合は、全データを包括する空間を範囲とする
+                info[SOUTH], info[NORTH] = values.each_with_object([]) {|v, a| a << v["latitude"]}.minmax
+                info[WEST],  info[EAST]  = values.each_with_object([]) {|v, a| a << v["longitude"]}.minmax
+            else
+                info[SOUTH], info[NORTH] = get_start_end(@latitude, lat)
+                info[WEST],  info[EAST]  = get_start_end(@longitude, long)
+            end
+
+            # インデックス毎に集計
+            summary = {}
+            summary[SUM]   = values.inject(0) {|sum, value| sum += value[@name] }
+            summary[COUNT] = values.size
+            summary[AVG]   = summary[SUM] / summary[COUNT]
+            summary[MIN], summary[MAX] = values.each_with_object([]) {|v, a| a << v[@name]}.minmax
+            result << summary.merge(info)
+        end
+        log_trace(result)
+        reset(now)  # 出力済みのデータを削除
+        return result
     end
 
     private
 
-    # 集計データをクリアする。
-    #
-    def reset()
-        # 三重ハッシュのデフォルト値を配列に設定する。
-        @temp = Hash.new{ |time_hash, time|
-            time_hash[time] = Hash.new{ |lat_hash, lat|
-                lat_hash[lat] = Hash.new{ |long_hash, long|
-                    long_hash[long] = []
-                }
-            }
-        }
+    # 集計データのキーを作成する。
+    # 
+    def get_key(value)
+        if @latitude.nil?
+            # 空間の指定がない場合は、すべて同じキーで集計する
+            return [nil, nil]
+        else
+            return [get_index(@latitude, value), get_index(@longitude, value)]
+        end
     end
 
-    #@private
-    # 蓄積したデータを集計して返す。蓄積したデータはクリアする。
+    # 集計データをクリアする。
     #
-    #@return [Hash] 集計後のデータ（データ形式はupdate_infoを参照）
-    #
-    def get_result()
-        result = []
-        @temp.each { |time, time_hash|
-            info = {NAME => @name}
-            info[START], info[ENDE] = get_start_end(@time, time) { |value| sec_to_time(value) }
-            time_hash.each { |lat, lat_hash|
-                info[SOUTH], info[NORTH] = get_start_end(@latitude, lat)
-                lat_hash.each { |long, values|
-                    info[WEST], info[EAST] = get_start_end(@longitude, long)
-
-                    # インデックス毎に集計
-                    summary = {}
-                    summary[SUM] = values.inject(0) {|sum, value| sum += value }
-                    summary[COUNT] = values.size
-                    summary[AVG] = summary[SUM] / summary[COUNT]
-                    summary[MIN], summary[MAX] = values.minmax
-
-                    log_debug { "info = #{info}, summary = #{summary}"}
-                    result << summary.merge(info)
-                }
-            }
-        }
-        reset()    # 出力済みのデータを削除
-        return result
+    def reset(now = nil)
+        if now.nil?
+            now = Time.now.to_i
+        end
+        @time  = now 
+        @cache = SyncHash.new{|h, k| h[k] = []}
     end
 end
 

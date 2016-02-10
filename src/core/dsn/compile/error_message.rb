@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- 
 require_relative '../../utils'
 require_relative './dsn_format_error'
 require_relative './dsn_define'
@@ -25,7 +25,7 @@ module DSN
         CORRECT_CHANNEL="channel: channel_name, @service_name (OPTION)\nOPTION =>[data_name,...]"
 
         #filter構文のフォーマット
-        CORRECT_FILTER="channel_name <~ filter(scratch_name, CONDITIONS)"
+        CORRECT_FILTER="channel_name <~ scratch_name.filter(CONDITIONS)"
 
         #time構文のフォーマット
         CORRECT_TIME="time(time_data_name, start_time, end_time, time_interval)"
@@ -33,10 +33,10 @@ module DSN
         CORRECT_SPACE="space(lat_data_name, long_data_name, west, south, east, north, lat_interval, long_interval)"
 
         #aggregate構文のフォーマット
-        CORRECT_AGGREGATE="channel_name <~ aggregate(scratch_name, aggregate_data_name, #{CORRECT_TIME}, #{CORRECT_SPACE}, CONDITIONS)"
+        CORRECT_AGGREGATE="channel_name <~ scratch_name.aggregate(aggregate_data_name, timeout, delay, #{CORRECT_SPACE})"
 
         #trigger構文のフォーマット
-        CORRECT_TRIGGER="event_name <+ trigger(channel_name, trigger_interval, trigger_conditions, condtions)"
+        CORRECT_TRIGGER="event_name <+ channel_name.trigger(trigger_interval, trigger_conditions, condtions)"
 
         #range構文のフォーマット
         CORRECT_RANGE="range(data_name, min, max)"
@@ -45,10 +45,30 @@ module DSN
         CORRECT_LIKE="like(data_name, regex)"
 
         #cull_time構文のフォーマット
-        CORRECT_CULLTIME="channel_name <~ cull_time(scratch_name, numerator, denominator, #{CORRECT_TIME})"
+        CORRECT_CULLTIME="channel_name <~ scratch_name.cull_time(numerator, denominator, #{CORRECT_TIME})"
 
         #cull_space構文のフォーマット
-        CORRECT_CULLSPACE="channel_name <~ cull_space(scratch_name, numerator, denominator, #{CORRECT_SPACE}"
+        CORRECT_CULLSPACE="channel_name <~ scratch_name.cull_space(numerator, denominator, #{CORRECT_SPACE})"
+
+        #string構文のフォーマット
+        CORRECT_STRING="channel_name <~ scratch_name.string(data_name, removeBlanks|removeSpecialChars|lowerCase|upperCase|concat|alphaReduce|numReduce|replace|regexReplace, [param1], [param2])"
+
+        #string構文のフォーマット(パラメタなし)
+        CORRECT_STRING0="channel_name <~ scratch_name.string(data_name, operator)"
+
+        #string構文のフォーマット(パラメタ1つ)
+        CORRECT_STRING1="channel_name <~ scratch_name.string(data_name, operator, param1)"
+
+        #string構文のフォーマット(パラメタ2つ)
+        CORRECT_STRING2="channel_name <~ scratch_name.string(data_name, operator, param1, param2)"
+
+        #merge構文のフォーマット
+        CORRECT_MERGE="channel_name.merge(delay, channel_name1, channel_name2, ...)"
+        #join構文のフォーマット
+        CORRECT_JOIN="channel_name.join(delay, virtual_prop_name, virtual_prop_expr, channel_name1, channel_name2, ...)"
+
+        #virtual構文のフォーマット(パラメタ1つ)
+        CORRECT_VIRTUAL="channel_name <~ scratch_name.virtual(virtual_prop_name, virtual_prop_expr)"
 
         #メソッド名に対応するフォーマットのハッシュ
         FORMAT_HASH = {
@@ -63,7 +83,11 @@ module DSN
             KEY_FILTER     => CORRECT_FILTER,
             KEY_CHANNEL    => CORRECT_CHANNEL,
             KEY_SCRATCH    => CORRECT_SCRATCH,
-            KEY_DISCOVERY  => CORRECT_DISCOVERY
+            KEY_DISCOVERY  => CORRECT_DISCOVERY,
+            KEY_STRING     => CORRECT_STRING,
+            KEY_MERGE      => CORRECT_MERGE,
+            KEY_JOIN       => CORRECT_JOIN,
+            KEY_VIRTUAL    => CORRECT_VIRTUAL,
         }
 
         ######################
@@ -284,6 +308,10 @@ module DSN
         ERR_TRANSMISSION_METHOD = "The specified method is not valid on transmission phrase(right side of \"<~\" operator)."
 
         #
+        #merge構文として無効なメソッドが指定された場合
+        ERR_MERGE_PROCESSING_METHOD = "The specified method is not valid on merge phrase(right side of \"merge\" method)."
+
+        #
         #event do ブロック内でevent doを検出(入れ子)
         ERR_NESTED_EVENTDO = "The specified method is not valid on transmission phrase(right side of \"<~\" operator)."
 
@@ -291,5 +319,25 @@ module DSN
         # 有効なDSN記述ブロック/構文と一致しない
         ERR_NOT_MATCH_SYNTAX = "This line does not match any enable DSN syntax."
 
+        #
+        #string構文のフォーマットが間違っていた場合
+        ERR_STRING_FORMAT = "The format is not correct in string method.\nCorrect format is:\n#{CORRECT_STRING}"
+
+        #
+        #string構文(パラメタなし)のフォーマットが間違っていた場合
+        ERR_STRING_FORMAT0 = "The format is not correct in string method.\nCorrect format is:\n#{CORRECT_STRING0}"
+
+        #
+        #string構文(パラメタ1つ)のフォーマットが間違っていた場合
+        ERR_STRING_FORMAT1 = "The format is not correct in string method.\nCorrect format is:\n#{CORRECT_STRING1}"
+
+        #
+        #string構文(パラメタ2つ)のフォーマットが間違っていた場合
+        ERR_STRING_FORMAT2 = "The format is not correct in string method.\nCorrect format is:\n#{CORRECT_STRING2}"
+
+        #merge構文のフォーマットが間違っていた場合
+        ERR_MERGE_METHOD = "The format is not correct in merge method.\nCorrect format is:\n#{CORRECT_MERGE}"
+        #join構文のフォーマットが間違っていた場合
+        ERR_JOIN_METHOD = "The format is not correct in join method.\nCorrect format is:\n#{CORRECT_JOIN}"
     end
 end

@@ -25,6 +25,7 @@ module DSN
     KEY_OVERLAY = "overlay"
 
     KEY_MULTI = "multi"
+    KEY_TYPE = "type"
 
     KEY_FILTER = "filter"
     KEY_CONDITIONS = "conditions"
@@ -45,6 +46,12 @@ module DSN
     KEY_END_TIME = "end_time"
     KEY_TIME_INTERVAL = "time_interval"
     KEY_TIME_UNIT = "time_unit"
+    KEY_TIMEOUT = "timeout"
+    KEY_DELAY = "delay"
+
+    KEY_VIRTUAL = "virtual"
+    KEY_VIRTUAL_NAME = "virtual_name"
+    KEY_VIRTUAL_EXPR = "virtual_expr"
 
     KEY_CULL_NUMERATOR = "numerator"
     KEY_CULL_DENOMINATOR = "denominator"
@@ -56,6 +63,17 @@ module DSN
 
     KEY_TRIGGER_INTERVAL = "trigger_interval"
     KEY_TRIGGER_CONDITIONS = "trigger_conditions"
+
+    KEY_MERGE = "merge"
+    KEY_JOIN  = "join"
+    KEY_MERGES = "merges"
+    KEY_MERGE_SRC = "src"
+    KEY_MERGE_DST = "dst"
+
+    KEY_STRING = "string"
+    KEY_STRING_DATA_NAME = "data_name"
+    KEY_OPERATOR = "operator"
+    KEY_PARAM = "param"
 
     KEY_TRIGGER = "trigger"
     KEY_EVENTS = "events"
@@ -158,7 +176,7 @@ module DSN
     CAP_METHOD_ARG       = "method_arg"
     CAP_INDEX_METHOD_ARG = :method_arg
     #メソッドの引数
-    REG_METHOD_ARG = "(?<#{CAP_METHOD_ARG}>.+)"
+    REG_METHOD_ARG = "(?<#{CAP_METHOD_ARG}>.*)"
     #メソッドのフォーマット
     REG_METHOD_FORMAT = /^#{REG_METHOD_NAME}\(#{REG_METHOD_ARG}\)$/
 
@@ -212,6 +230,10 @@ module DSN
     REG_EVENT_NAME = "\\w+"
     REG_TRIGGER_START_FORMAT = /\w+\s*(<\+|<-)\s*/
     REG_TRIGGER_FINISH_FORMAT = /#{REG_METHOD_END}/
+
+    #Mergeクラス
+    REG_MERGE_START_FORMAT = /\w+\.(merge|join)\(/
+
 
     #ブロック構文解析用
     REG_BLOCK_DO_FORMAT = /\s+do$/

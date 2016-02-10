@@ -5,7 +5,7 @@ require 'json'
 require 'time'
 
 require_relative './errors'
-load './config.rb'
+load 'config.rb'
 
 # オブジェクトをディープコピーする
 #

@@ -2,7 +2,7 @@
 require_relative '../compile/dsn_define'
 
 #= チャネル要求クラス
-# DSNからのチャネル生成・変更時の情報を保持する。
+# チャネル生成・変更時の情報を保持する。
 #
 #@author NICT
 #
@@ -13,39 +13,24 @@ class ChannelSettings
     attr_reader :overlay
     #@return [String]   channel ID
     attr_accessor :id
-    #@return [ServiceInfo] source service
-    attr_reader   :src
-    #@return [ServiceInfo] destination service
-    attr_reader   :dst
     #@return [Hash] application request
     attr_accessor :app_req
 
-    #@param [Hash] link_hash DSN記述チャネル定義
-    #@param [Hash] service_hash DSN記述サービス定義
+    #@param [String] overlay オーバーレイID
+    #@param [Hash] scratch 送信側チャネル要求
+    #@param [Hash] channel 受信側チャネル要求
+    #@param [Hash] app_req 中間処理要求
+    #@param [String] block DSNブロック名
     #
-    def initialize(overlay, link_hash, service_hash, block)
+    def initialize(overlay, scratch, channel, app_req, block)
         @overlay      = overlay
         @id           = nil
+        @scratch      = scratch
+        @channel      = channel
+        @app_req      = app_req
+        @log_id       = app_req["id"]
         @block        = block
-        @src          = ServiceInfo.new(link_hash[KEY_TRANS_SRC], service_hash)
-        @dst          = ServiceInfo.new(link_hash[KEY_TRANS_DST], service_hash)
-        @app_req      = link_hash[KEY_APP_REQUEST]
-        @log_id       = @app_req["id"]
-        @scratch_name = @app_req["scratch"]["name"]
-        @channel_name = @app_req["channel"]["name"]
-    end
-
-    #@see Object#==
-    def ==(o)
-        @src == o.src && @dst == o.dst && @app_req == o.app_req
-    end
-
-    #@param [ChannelSettings] o ChannelSettingsオブジェクト
-    #@return [True] 送受信先の設定が同じ
-    #@return [False] 送受信先の設定が異なる
-    #
-    def same_channel?(o)
-        @src.name == @dst.name && @src.query == @dst.query
+        @needs_update = false
     end
 
     # チャネルを活性化する
@@ -56,8 +41,12 @@ class ChannelSettings
         if @id.nil?
             @id = Supervisor.create_channel(@overlay, to_request())
         else
+            if @needs_update
+                Supervisor.update_channel(@id, to_request())
+            end
             Supervisor.activate_channel(@id)
         end
+        @needs_update = false
     end
 
     # チャネルを非活性化する
@@ -86,11 +75,12 @@ class ChannelSettings
 
     # チャネルを更新する
     #
-    def update()
-        if @id.nil?
-            # do nothing.
-        else
-            Supervisor.update_channel(@id, to_request())
+    def update(scratch, channel, app_req)
+        if (@scratch != scratch) || (@channel != channel) || (@app_req != app_req)
+            @scratch      = scratch
+            @channel      = channel
+            @app_req      = app_req
+            @needs_update = true
         end
     end
 
@@ -100,16 +90,8 @@ class ChannelSettings
         return {
             "id" => @log_id,
             "block" => @block,
-            "scratch" => {
-            "name"  => @scratch_name,
-            "query" => @src.query,
-            "multi" => @src.multi,
-            },
-            "channel" => {
-            "name"  => @channel_name,
-            "query" => @dst.query,
-            "multi" => @dst.multi,
-            },
+            "scratch" => @scratch,
+            "channel" => @channel,
             "app_req" => @app_req,
         }
     end

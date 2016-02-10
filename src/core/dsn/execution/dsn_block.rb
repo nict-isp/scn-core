@@ -3,7 +3,7 @@ require_relative '../../utils'
 require_relative '../compile/dsn_define'
 require_relative '../compile/conditions'
 require_relative '../../translator/supervisor'
-require_relative './channel_settings'
+require_relative './complex_channel_settings'
 
 #= チャネル設定ブロッククラス
 #  DSN記述の event_condition do ブロックの設定を保持する。
@@ -19,7 +19,7 @@ class DSNEventBlock
     attr_reader   :event_cond
     #@return [True]         イベント成立状態
     #@return [False]         イベント非成立状態
-    attr_reader   :event_staｌte
+    attr_reader   :event_state
     #@return [Array]         イベント成立時チャネル設定リスト
     attr_reader   :channel_settings
     #@return [Array]         イベント成立時状態監視
@@ -28,17 +28,19 @@ class DSNEventBlock
     #@param [Hash] DSN記述イベントコンディションブロック
     #@param [Hash] サービスブロック（ChannelSettings へ渡す）
     #
-    def initialize(overlay, event_hash, services_hash)
+    def initialize(overlay, event_hash, channels_hash)
+        log_debug{"event_hash = #{event_hash}"}
         @overlay     = overlay
         @event_state = false
         @event_cond  = event_hash[KEY_CONDITIONS]
         @trigger     = event_hash[KEY_TRIGGER]
 
         @block = compile_conditions(@event_cond)
-        parse_service_link(event_hash, services_hash)
+        parse_service_link(event_hash, channels_hash)
     end
 
-    #@param [Hash] trigger_hash DSN記述のトリガ設定
+    #@param [Hash] trigger_hash DSN記述全体のトリガ設定
+    #@return [Hash] 更新したトリガ設定
     #
     def merge_trigger(trigger_hash)
         log_debug{"#{trigger_hash}"}
@@ -58,6 +60,28 @@ class DSNEventBlock
         return trigger_hash
     end
 
+    #@param [Hash] merge_hash DSN記述全体のマージ設定
+    #@return [Hash] 更新したマージ設定
+    #
+    def merge_merges(merge_hash)
+        if @event_state == true
+            @merges.each do |merge|
+                dst = merge[KEY_MERGE_DST]
+                if merge_hash.has_key?(dst)
+                    # 同じdst指定のマージが複数ある場合
+                    dst_merge = merge_hash[dst]
+                    # すべてのソースを結合
+                    dst_merge[KEY_MERGE_SRC]  |= merge[KEY_MERGE_SRC]
+                    # 最小のディレイを適用
+                    dst_merge[KEY_DELAY] = [dst_merge[KEY_DELAY], merge[KEY_DELAY]].min
+                else
+                    merge_hash[dst] = merge
+                end
+            end
+        end
+        return merge_hash
+    end
+
     #@param [Hash] overlay_info オーバーレイ情報
     #@return [Hash] ブロックの状態（ログ出力向け）
     #
@@ -65,35 +89,34 @@ class DSNEventBlock
         log_debug{"#{events}"}
         # 条件成立確認
         @event_state = Conditions.ok?(@event_cond, events)
-
-        update()
     end
 
     #@param [Hash] イベントコンディションブロック
     #@param [Hash] サービスブロック（ChannelSettings へ渡す）
     #
-    def modify(event_hash, services_hash)
+    def modify(event_hash, channels_hash)
         log_debug(){"old_settings = #{@channel_settings}"}
+        @merges = event_hash[KEY_MERGES]
+        log_debug(){"@merges = #{@merges}"}
 
         new_settings = []
         old_settings = @channel_settings.dup
         # 追加されているチャネルを、@channel_settingへ追加する。
         event_hash[KEY_SERVICE_LINK].each do |link_hash|
-            new_setting = ChannelSettings.new(@overlay, link_hash, services_hash, @block)
+            new_setting = ComplexChannelSettings.new(@overlay, link_hash, channels_hash, @block)
 
             # 複数同じ要素がある場合を考慮し、delete_atを使用する
             old_index = old_settings.index(new_setting)
             if old_index.nil?
-                old_index = old_index = old_settings.index{|setting| setting.same_channel?(new_setting) }
+                old_index = old_settings.index{|setting| setting.same_channel?(new_setting) }
                 if old_index.nil?
                     # 新規セッティング
                     new_settings << new_setting
                 else
                     # srcとdstのみの一致
-                    old_setting    = old_settings.delete_at(old_index)
-                    new_setting.id = old_setting.id
-                    new_setting.update()
-                    new_settings << new_setting
+                    old_setting = old_settings.delete_at(old_index)
+                    old_setting.update(link_hash, channels_hash)
+                    new_settings << old_setting
                 end
             else
                 # 完全一致（操作不要）
@@ -105,16 +128,17 @@ class DSNEventBlock
         old_settings.each {|setting| setting.delete}
 
         log_debug(){"new_settings = #{@channel_settings}"}
-
-        update()
     end
 
-    private
-
-    def update()
+    # ブロックのチャネル要求を更新する
+    #
+    #@param [Hash<String, MergeSetting>] マージ要求
+    #@retrun [void]
+    #
+    def update(merge_settings)
         if @event_state == true
             @channel_settings.each do |channel_setting|
-                channel_setting.activate()
+                channel_setting.activate(merge_settings)
             end
         else
             @channel_settings.each do |channel_setting|
@@ -123,14 +147,19 @@ class DSNEventBlock
         end
     end
 
+    private
+
     #@param [Hash] イベントコンディションブロック
     #@param [Hash] サービスブロック（ChannelSettings へ渡す）
     #
-    def parse_service_link(event_hash, services_hash)
+    def parse_service_link(event_hash, channels_hash)
+        @merges = event_hash[KEY_MERGES]
+        log_debug(){"@merges = #{@merges}"}
+
         @channel_settings = []
         event_hash[KEY_SERVICE_LINK].each do |link_hash|
             begin
-                @channel_settings << ChannelSettings.new(@overlay, link_hash, services_hash, @block)
+                @channel_settings << ComplexChannelSettings.new(@overlay, link_hash, channels_hash, @block)
             rescue
                 log_error("", $!)
             end
@@ -180,12 +209,12 @@ class DSNConstantBlock < DSNEventBlock
     #@param [Hash] DSN記述イベントコンディションブロック
     #@param [Hash] サービスブロック（ChannelSettings へ渡す）
     #
-    def initialize(id, event_hash, services_hash)
+    def initialize(id, event_hash, channels_hash)
         super
         @event_state = true # 不変
         @event_cond = nil # 不要
 
-        parse_service_link(event_hash, services_hash)
+        parse_service_link(event_hash, channels_hash)
     end
 
     #@param [Hash] オーバーレイ情報
@@ -193,9 +222,7 @@ class DSNConstantBlock < DSNEventBlock
     #@note イベント条件判定不要
     #
     def update_state(overlay_info)
-        @channel_settings.each do |channel_setting|
-            channel_setting.activate()
-        end
+        # nop
     end
 end
 

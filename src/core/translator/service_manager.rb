@@ -4,8 +4,11 @@ require 'singleton'
 require_relative '../utils'
 require_relative '../utility/message'
 require_relative '../utility/collector'
-require_relative './service'
+require_relative '../utility/sync'
+require_relative './service/service'
 require_relative './service_discovery'
+require_relative './../dsn/processing/processing'
+require_relative './../dsn/processing/aggregate'
 
 #= サービス管理クラス
 # サービスに関して以下の機能を提供する。
@@ -61,8 +64,9 @@ class ServiceManager
     # サービス検索を行なう。
     #
     #@param [String] query 検索条件
+    #@param [Integer] reqire 要求数
     #
-    def discovery_service(query)
+    def discovery_service(query, reqire=nil)
         raise NotImplementedError
     end
 
@@ -72,7 +76,7 @@ class ServiceManager
     #@param [Hash] service_info サービスの情報
     #@param [Hash] resource 資源情報情報
     #@param [Integer] port データ受信用ポート番号
-    #@return [Service] サービスオブジェクト
+    #@return [String] サービスID
     #@raise [ArgumentError] サービス情報の形式が誤っている。
     #
     def join_service(service_name, service_info, port)
@@ -105,6 +109,35 @@ class ServiceManager
 
         propagate(service.id, service)
         EventCollector.update_service(service)
+    end
+
+    # 統計情報を更新する。
+    #
+    #@param [String] ip ノードのIPアドレス
+    #@param [Hash] stats ノードの統計情報
+    #@return [void]
+    #
+    def update_stats(ip, stats)
+        raise NotImplementedError
+    end
+
+    # インナーサービスの生成先ノードを解決する
+    #
+    #@param [Hash] 生成するサービス情報
+    #@return [String] 生成先ノードのIPアドレス
+    #
+    def resolve_service_node
+        raise NotImplementedError
+    end
+
+    # サービスを解決する（立ち上げる）
+    #
+    #@param [String] type サービスのタイプ
+    #@param [Hash] params サービスのパラメータ
+    #@return [String] サービスID
+    #
+    def resolve_service_node(type, params)
+        raise NotImplementedError
     end
 
     private
@@ -202,12 +235,12 @@ class ServiceManagerClient < ServiceManager
     end
 
     #@see ServiceManager#discovery_service
-    def discovery_service(query)
+    def discovery_service(query, reqire=nil)
         log_trace(query)
 
-        log_info("search query  = #{query}")
-        services = send_request(@server_ip, REQUEST_SERVICE_MANAGER, "discovery_service", [query])
-        log_info("search result = #{services}")
+        log_info("search query  = #{query}, reqire = #{reqire}")
+        services = send_request(@server_ip, REQUEST_SERVICE_MANAGER, "discovery_service", [query, reqire])
+        log_info("search result = #{services}, size = #{services.size}")
 
         return services
     end
@@ -232,6 +265,17 @@ class ServiceManagerClient < ServiceManager
         send_request(@server_ip, REQUEST_SERVICE_MANAGER, "update_service_inner", [service_id, service_info])
         super
     end
+
+    #@see ServiceManager#update_stats
+    def update_stats(ip, stats)
+        #send_request(@server_ip, REQUEST_SERVICE_MANAGER, "update_stats_inner", [ip, stats])
+        send_request(@server_ip, PROPAGATE_SERVICE_MANAGER, "update_stats_inner", [ip, stats])
+    end
+
+    #@see ServiceManager#resolve_service_node
+    def resolve_service_node(param)
+        send_request(@server_ip, REQUEST_SERVICE_MANAGER, "resolve_service_node", [param])
+    end   
 end
 
 #= サービスサーバクラス
@@ -249,24 +293,24 @@ class ServiceManagerServer < ServiceManager
     def initialize(*args)
         super
         @discoverer = SimpleServiceDiscovery.new()
+        # ノードの統計情報（ip => 統計情報）
+        @stats      = SyncHash.new() {|h, k| h[k] = {} }
     end
 
-    # query で指定された条件にマッチするサービスオブジェクトのリストを返す。
-    #
-    #@param [Hash] query サービスの検索条件(nilの場合全検索)
-    #@return [Array] 検索にヒットしたサービスの配列
-    #@return [Hash] 検索にヒットしたサービスのIPアドレス
-    #@raise [NoMethodError] 未サポートの検索クエリが指定された。
-    #
-    def discovery_service(query)
+    #@see ServiceManager#discovery_service
+    def discovery_service(query, reqire=nil)
         log_trace(query)
-        log_info("search query  = #{query}")
+        log_info("search query  = #{query}, reqire = #{reqire}")
 
-        result = @discoverer.search(query, @service_list)
-        log_info("search result = #{result}")
-
-        EventCollector.discovery_service(query, result)
-        return result
+        services = @discoverer.search(query, @service_list)
+        if reqire
+            log_debug("search result = #{services}, size = #{services.size}")
+            services = select_services(services, reqire)
+        end
+        log_info("search result = #{services}, size = #{services.size}")
+        
+        EventCollector.discovery_service(query, services)
+        return services
     end
 
     #@see ServiceManager#update_service_inner
@@ -283,8 +327,37 @@ class ServiceManagerServer < ServiceManager
 
     #@see ServiceManager#delete_service
     def delete_service(service_id)
-        super
+        deleted = super
         log_info("service is deleted. (service ID = #{service_id})")
+        return deleted
+    end
+
+    #@see ServiceManager#update_stats
+    def update_stats(ip, stats)
+        update_stats_inner(ip, stats)
+    end
+
+    #@see ServiceManager#resolve_service_node
+    def resolve_service_node(param)
+        if @stats.size > 0
+            return @stats.min_by{|k, v| v["mem_usage"]}[0]
+        else
+            return $ip
+        end
+    end
+
+    private
+
+    def update_stats_inner(ip, stats)
+        @stats[ip] = stats
+    end
+
+    def select_services(services, reqire)
+        services = services.sort_by{|service| 
+            usage = @stats[service.ip]["mem_usage"]
+            usage.nil?() ? 999.9 : usage
+        }
+        return services.shift(reqire)
     end
 end
 

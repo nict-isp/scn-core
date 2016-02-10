@@ -19,10 +19,11 @@ class Supervisor
     extend  Forwardable
 
     def_delegators :@service_manager, :join_service, :update_service, :leave_service, :discovery_service, :set_service
+    def_delegators :@service_manager, :update_stats, :resolve_service_node
     def_delegators :@overlay_manager, :create_overlay, :delete_overlay
     def_delegators :@overlay_manager, :get_channel, :create_channel, :delete_channel, :update_channel, :activate_channel, :inactivate_channel
     def_delegators :@overlay_manager, :get_overlay, :get_overlays_by_service_id, :update_overlays_by_service
-    def_delegators :@overlay_manager, :set_trigger
+    def_delegators :@overlay_manager, :set_trigger, :set_merge, :send_message
     def_delegators :@processing_manager, :send_data, :receive_data
 
     #@return [ServiceManager]
@@ -53,8 +54,6 @@ class Supervisor
         @middleware_id      = middleware_id
         @service_manager    = ServiceManager.create(middleware_id, service_server)
         @overlay_manager    = OverlayManager.new(middleware_id)
-        #@service_manager    = ServiceManager.create(self, middleware_id, service_server)
-        #@overlay_manager    = OverlayManager.new(self, middleware_id)
         @processing_manager = ProcessingManager.instance
     end
 

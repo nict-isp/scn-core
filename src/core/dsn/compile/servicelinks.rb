@@ -2,6 +2,7 @@
 require_relative './dsn_text'
 require_relative './transmission'
 require_relative './trigger'
+require_relative './merge'
 
 module DSN
 
@@ -18,7 +19,8 @@ module DSN
         #
         def initialize()
             @transmission_set = Hash.new(){|hash, key| hash[key] = []}
-            @trigger_set = Hash.new(){|hash,key| hash[key] = {"on" =>[], "off"=>[] }}
+            @trigger_set      = Hash.new(){|hash,key| hash[key] = {"on" =>[], "off"=>[] }}
+            @merge_set        = Hash.new(){|hash, key| hash[key] = []}
         end
 
         # DSN記述からTransmissionインスタンスの生成とTriggerSetインスタンスの生成をおこなう。
@@ -40,6 +42,7 @@ module DSN
             structures = []
             structures << Syntax.get_structure_class("DSN::Transmission")
             structures << Syntax.get_structure_class("DSN::Trigger")
+            structures << Syntax.get_structure_class("DSN::Merge")
 
             parser = DSNTextParser.new(structures)
 
@@ -54,6 +57,9 @@ module DSN
                 when "DSN::Trigger"
                     trigger = syntax.parse_inside(state)
                     _set_trigger(trigger)
+                when "DSN::Merge"
+                    merge = syntax.parse_inside(state)
+                    @merge_set[merge.line_offset] = merge
                 else
                     # バグ以外ありえない
                     raise "No match DSN syntax in #{block_name} block."
@@ -90,11 +96,17 @@ module DSN
         #@example
         #
         def to_hash()
-            #transmissionから,チャネルの一覧を取り出す。
-            #
-            #チャネルの一覧に対して、各々のリンクに対応した中間コードを読みだす。
+            return {
+                KEY_SERVICE_LINK => self._transmission_to_hash,
+                KEY_TRIGGER      => self._trigger_to_hash,
+                KEY_MERGES       => self._merge_to_hash
+            }
+        end
 
-            #チャネルの一覧を取り出す。
+        # transmissionのハッシュを取得する。
+        def _transmission_to_hash()
+            #transmissionから,チャネルの一覧を取り出す。
+            #チャネルの一覧に対して、各々のリンクに対応した中間コードを読みだす。
             array = []
 
             links = @transmission_set.keys
@@ -125,10 +137,7 @@ module DSN
                 array << servicelink
             end
 
-            return {
-                KEY_SERVICE_LINK => array,
-                KEY_TRIGGER      => self._trigger_to_hash
-            }
+            return array
         end
 
         # triggerのハッシュを取得する。
@@ -141,6 +150,16 @@ module DSN
             end
 
             return hash
+        end
+
+        # mergeのハッシュを取得する。
+        def _merge_to_hash()
+            array = []
+            @merge_set.each do |key, merge|
+                array << merge.to_hash
+            end
+
+            return array
         end
     end
 end

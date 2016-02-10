@@ -420,13 +420,14 @@ import urllib, urllib2
 class PIAXAccessor:
     """ PIAX基盤へのアクセスクラス
     """
-    PIAX_URL_BASE   = "192.168.240.12:5000"
-    PIAX_URL_DATA_FORMAT = "http://{0}/sensors/{1}/values/{2}"
-    PIAX_URL_SENSORS_FORMAT = "http://{0}/sensors/{1}"
+    PIAX_URL_BASE           = "192.168.240.12:8090"
+    PIAX_URL_DATA_FORMAT    = "http://{0}/sensors/discquery/{1}/values/{2}"
+    PIAX_URL_SENSORS_FORMAT = "http://{0}/sensors/discquery/{1}"
 
-    QUERY_FORAT     = "Location in {0}({1})"
-    SELECT_COMMON   = ["Location%2FLongitude", "Location%2FLatitude"]
-    REQUEST_HEADER  = {'Accept':'application/json'}
+    QUERY_FORAT   = "Location in {0}({1})"
+    SELECT_COMMON = ["Location%2FLongitude", "Location%2FLatitude"]
+    HEADER_COOKIE = "API_KEY=vqF+WleHlo094F2U5YhHlVhFo5J12u4Q86z2CR6COFOO7VTKgGKoMsv1YXsk7X4P3vnxl32mKEg="
+    HEADER_ACCEPT = "application/json"
 
     def get_data(self, values = [], method = "rect", params = [122.56, 20.25, 31.04, 25.09]):
         """ GETメソッドを実行する
@@ -443,9 +444,11 @@ class PIAXAccessor:
         logging.info('[Get] %s', url)
 
         try:
-            request = urllib2.Request(url, None, self.REQUEST_HEADER)
-            response = urllib2.urlopen(request, timeout=10)
-            return response.read()
+            opener = urllib2.build_opener()
+            opener.addheaders.append(('Cookie', self.HEADER_COOKIE))
+            opener.addheaders.append(('Accept', self.HEADER_ACCEPT))
+            f = opener.open(url)
+            return f.read()
 
         except urllib2.URLError, e:
             if hasattr(e, 'reason'):
@@ -466,9 +469,11 @@ class PIAXAccessor:
         logging.info('[Get] %s', url)
 
         try:
-            request = urllib2.Request(url, None, self.REQUEST_HEADER)
-            response = urllib2.urlopen(request, timeout=10)
-            return response.read()
+            opener = urllib2.build_opener()
+            opener.addheaders.append(('Cookie', self.HEADER_COOKIE))
+            opener.addheaders.append(('Accept', self.HEADER_ACCEPT))
+            f = opener.open(url)
+            return f.read()
 
         except urllib2.URLError, e:
             if hasattr(e, 'reason'):

@@ -49,6 +49,12 @@ class Path
         @flows.each do |src, dst|
             NCPS.create_flow(@id, src, dst)
         end
+
+        if @flows.size == 0
+            # フローがないとSCN-Visualizer上に表示されないため
+            # ダミーのサービス連携生成メッセージを飛ばす。
+            EventCollector.create_flow(@id, get_dummy_flow_id())
+        end
     end
 
     # 中間処理に合わせて、フローを変更する。
@@ -57,15 +63,25 @@ class Path
     #@return [void]
     #
     def update(processings)
-        old_flows = create_flows(@processings)
         new_flows = create_flows(processings)
 
-        (old_flows - new_flows).each do |src, dst|
+        (@flows - new_flows).each do |src, dst|
             NCPS.delete_flow(@id, src)    # 送信元を指定するので先に削除
         end
-        (new_flows - old_flows).each do |src, dst|
+        (new_flows - @flows).each do |src, dst|
             NCPS.create_flow(@id, src, dst)
         end
+
+        # 必要に応じてダミーのサービス連携を生成・削除 
+        if @flows.size == 0 && new_flows.size > 1
+            EventCollector.delete_flow(@id, get_dummy_flow_id())
+
+        elsif @flows.size > 1 && new_flows.size == 0
+            EventCollector.create_flow(@id, get_dummy_flow_id())
+        end
+
+        @flows       = new_flows
+        @processings = processings
     end
 
     # フローを削除する。
@@ -74,6 +90,10 @@ class Path
     #
     def delete()
         NCPS.delete_flow(@id)
+
+        if @flows.size == 0
+            EventCollector.delete_flow(@id, get_dummy_flow_id())
+        end
     end
 
     # データを送信する。
@@ -81,7 +101,12 @@ class Path
     #@return [void]
     #
     def send(data, data_size)
-        NCPS.send_data(@id, data, data_size)
+        if @flows.size > 0
+            NCPS.send_data(@id, data, data_size)
+        else
+            # フローのない場合は自ノード宛
+            NCPS.receive_data(@id, data, data_size)
+        end
     end
 
     #@param {Service] src_service 送信元サービス
@@ -126,4 +151,7 @@ class Path
         return flows
     end
 
+    def get_dummy_flow_id()
+        return "s#{@id}_bi_d#{@id}"
+    end
 end

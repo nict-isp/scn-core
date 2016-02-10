@@ -52,10 +52,10 @@ end
 class SimplePathCreator < PathCreator
 
     #@see PathCreator#create
-    def create(channel_req)
-        log_trace(channel_req)
+    def create(services, channel_req)
+        log_trace(services, channel_req)
         processings = channel_req["app_req"]["processing"]
-        service_pairs = create_pairs(channel_req)    # 無造作に送受信サービスを選ぶ
+        service_pairs = create_pairs(services, channel_req)    # 無造作に送受信サービスを選ぶ
 
         paths = []
         service_pairs.each do |src_service, dst_service|
@@ -67,10 +67,10 @@ class SimplePathCreator < PathCreator
     end
 
     #@see PathCreator#update
-    def update(paths, channel_req)
-        log_trace(paths, channel_req)
-        processings  = channel_req["app_req"]["processing"]
-        service_pairs = create_pairs(channel_req)
+    def update(paths, services, channel_req)
+        log_trace(paths, services, channel_req)
+        processings   = channel_req["app_req"]["processing"]
+        service_pairs = create_pairs(services, channel_req)
 
         update_paths = []
         delete_paths = []
@@ -110,11 +110,12 @@ class SimplePathCreator < PathCreator
 
     # チャネル要求の並列数を満たすように送信元と送信先のサービスのペアを作成する。
     #
-    def create_pairs(channel_req)
+    def create_pairs(services, channel_req)
+        log_trace(services, channel_req)
         src = channel_req["scratch"]
         dst = channel_req["channel"]
-        srcs = resolve_services(src)
-        dsts = resolve_services(dst)
+        srcs = services[src["name"]]["services"]
+        dsts = services[dst["name"]]["services"]
 
         # サービス数がmultiを満たさない場合はリンク不足とする
         src_multi = src["multi"] | 1
@@ -131,13 +132,6 @@ class SimplePathCreator < PathCreator
             pairs << [srcs[index % src_size], dsts[index % dst_size]]
         end
         return pairs
-    end
-
-    # サービスに優先順位を付けずに返す
-    #
-    def resolve_services(service_info)
-        services = Supervisor.discovery_service(service_info["query"])
-        return services
     end
 
     # パスを生成する。

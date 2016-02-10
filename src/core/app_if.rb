@@ -266,6 +266,31 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
+    # サービスルックアップAPI
+    #
+    #@param [Hash] query 検索クエリ
+    #@param [Integer] reqire 要求数
+    #@return [JSON] ヒットしたサービス情報の配列
+    #
+    def discovery_service(query, reqire=nil)
+        log_trace(query, reqire)
+        log_time()
+
+        log_debug() {"discovery = \"#{query}\", reqire = \"#{reqire}\""}
+        services = Supervisor.discovery_service(query, reqire) 
+        services_info = services.map{|service| service.to_info()}
+        json = JSON.dump(services_info)   
+    
+        log_debug() {"discovery result = \"#{json}\""}
+        log_time()
+
+        return json
+
+    rescue Exception
+        log_error("discovery service failed.", $!)
+        raise ApplicationError, $!
+    end
+
     private
 
     def correction_data(data)
@@ -280,7 +305,8 @@ class ApplicationRPCServer
             corrected_data = data
 
         elsif data.instance_of? Hash
-            corrected_data = [data]
+            corrected_data = data
+
         else
             raise ArgumentError, "data format is invalid. data type = #{data.class}"
         end
