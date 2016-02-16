@@ -6,13 +6,13 @@ Service-Controlled Networking (SCN) is the technology providing the capability t
 
 SCN Core is running in the middleware layer of SCN, and execute service search, service cooperation, and In-Network Data Processing.
 
-For more information, please refer to the [overview](docs/intro/overview) of the document.
+For more information, please refer to the :doc:`docs/intro/overview` of the document.
 
 
 How to install
 ----------------
 
-For more information, please refer to the [installation](docs/intro/installation) of the document.
+For more information, please refer to the :doc:`docs/intro/installation`  of the document.
 
 
 document
