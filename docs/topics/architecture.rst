@@ -1,25 +1,25 @@
-===============
+=============
 Architecture
-===============
+=============
 
 SCN architecture
-==========
+=================
 
 * SCN has three layers: an **Application layer** , **Middleware layer** , and **Network layer**
 
 Application layer
------------------------
+------------------
 * In the application layer, information services operate and collect data from various data sources.
 * Define the request of “I want data like this” in DSN and output it to SCN middleware.
 
 Middleware layer
--------------------
+-----------------
 * The middleware layer is run by the SCN Core. It translates and executes the DSN received from the application layer, and performs event detection or In-Network Data Processing.
 * It manages the service search or service cooperation according to the description defined by DSN.
 * Additionally, it calculates and creates a path for sending data that are received fromthe application layer.
 
 Network layer
--------------------
+--------------
 * It detects network topology or monitors network traffic.
 * It switches a flow dynamically according to the network traffic to meet the requested QoS.
 
@@ -30,7 +30,7 @@ Network layer
 
 
 Architecture of SCN Core
-===============
+=========================
 * SCN Core consists of three components: **DSN** , **Translator**, and **NCPS** .
 
 .. image:: img/fig-architecture-2.png
@@ -74,13 +74,13 @@ NCPS
 * In case OpenFlow is used as network layer, it sends a command to SCN OpenFlow Driver to set a flow or does something.
 
 Configuration
-===========
+==============
 
 * The following is to describe the configuration that can be configured by SCN Core.
 
 
 Log settings
----------
+-------------
 
 * Log level can be set as stated below.
 
@@ -101,7 +101,7 @@ DEBUG       FATAL + ERROR + WARN + INFO + DEBUG
 
 
 Sending destination settings of log information/status
----------------------------------
+-------------------------------------------------------
 ::
 
   # fluend setting
@@ -110,7 +110,7 @@ Sending destination settings of log information/status
 
 
 RPC settings for communication with applications
-----------------------------------------
+-------------------------------------------------
 ::
 
   #  RPC initial receiving port
@@ -128,7 +128,7 @@ RPC settings for communication with applications
 
 
 Translator operation interval settings
--------------------------
+---------------------------------------
 
 ::
 
@@ -138,7 +138,7 @@ Translator operation interval settings
 
 
 NCPS network type settings
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * The network type can be set as described below
 
 ================= =======================================
@@ -155,7 +155,7 @@ TCP               Use TCP/IP as Network layer
 
 
 Data communication port settings
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     # Data message base port
@@ -169,7 +169,7 @@ Data communication port settings
 
 
 Communication settings with SCN OpenFlow Driver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   # Communication port with SCN OpenFlow Driver

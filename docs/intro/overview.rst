@@ -1,6 +1,6 @@
-========
+=============
 What is SCN?
-========
+=============
 * Service-Controlled Networking (SCN) is the technology that provides the capability to configure network resources automatically according to the application requests, and to cooperate efficiently with various information services that configure applications.
 * This enables the user to analyze sensor data or social data cross-sectionally in various fields, and to create services that discover new value.
 * Furthermore, when an unexpected event is detected using sensor data, it enables intensive collection and analysis of sensor data from various information collected around the area.
@@ -14,10 +14,10 @@ What is SCN?
 
 
 Features of SCN
-==========
+================
 
 Service search/Service cooperation
---------------------------
+-----------------------------------
 * It enables the user to find an information service that matches the specified search criteria from among the information services that are running separately on each node.
 * Additionally, by cooperating with the information services found, it enables the user to collect as much data as necessary.
 
@@ -35,7 +35,7 @@ In-Network Data Processing
       :align: center
 
 Data communication route control
--------------------
+---------------------------------
 * When congestion occurs on the network, it provides the capability of switching the data communication route dynamically to avoid congestion.
 
 .. image:: ./img/fig-overview-4.png
@@ -44,7 +44,7 @@ Data communication route control
 
 
 Declarative definition of Service search/Service cooperation
---------------------------------------
+-------------------------------------------------------------
 * It enables the user to define the information of service search and service cooperationdeclaratively with the following Declarative Service Networking (DSN).
 
 
@@ -73,6 +73,6 @@ Declarative definition of Service search/Service cooperation
 
 
 About SCN development
-==================
+======================
 SCN is an open source project that is being developed by Information Services Platform Laboratory in National Institute of Information and Communications Technology (http://nict.go.jp/univ-com/isp/index.html).
 

@@ -1,9 +1,9 @@
-============
+=========================
 DSN description language
-============
+=========================
 
 Basic structure of DSN
-==============
+=======================
 
 DSN consists of ``state do`` block and ``bloom do`` block.
 
@@ -19,7 +19,7 @@ DSN consists of ``state do`` block and ``bloom do`` block.
 
 
 State do Block
-=================
+===============
 
 ``State do`` block defines service.
 
@@ -76,7 +76,6 @@ In the following example, it defines ``@twitter`` service as ``s_twitter`` as a 
 *  ``channel_name`` : (string) Arbitrary channel name
 *  ``@service_name`` : (string) Defined service name
 
-* 
 In the following example, it defines ``@store`` service as ``c_store`` as a data receiving service.
 
 ::
@@ -86,13 +85,13 @@ In the following example, it defines ``@store`` service as ``c_store`` as a data
 
 
 bloom do block
-=================
+===============
 
 At the ``bloom do`` , it defines the data flow and event.
 
 
 Data flow
--------------
+----------
 
 Data flow is defined as ``<~`` . When receiving data that was sent by ``scratch_name`` at ``channel_name``, describe it as follows.
 
@@ -315,10 +314,10 @@ In the following example, the sending data of ``s_panda`` is stored in ``PANDA_S
 
 
 Event
-=========
+======
 
 Trigger
----------
+--------
 
 Trigger of the event is defined by the following.
 
@@ -342,7 +341,7 @@ of ``<+`` , ``off`` in case of ``<-`` , and ``on`` or ``off`` in case of ``<+-``
 
 
 Event block
------------------
+------------
 
 Event block is to be described in the ``bloom do`` block.
 
@@ -384,10 +383,10 @@ In the following event, when ``c_store`` receives more than ``130`` data within 
 
 
 Special description method
-===============
+===========================
 
 Execution definition of multiple In-Network Data Processing
--------------------------------------------
+------------------------------------------------------------
 
 When defining several In-Network Data Processing with one data flow, connect the definition of processing with ``.`` as shown below.
 
@@ -405,7 +404,7 @@ In the following example, filtering is performed first. Then culling by time is 
 
 
 Definition of several @service
----------------------
+-------------------------------
 
 Normally at ``@service_name`` , one service that matches the condition is defined. However, multiple services that match the condition are definable by designating ``multi=multi_num`` in the condition of ``discovery`` .
 
