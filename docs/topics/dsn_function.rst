@@ -139,6 +139,7 @@ Please add the following to the top of ``core/dsn/processing/processing_factory.
 
 
 .. code-block:: ruby
+
     require_relative './sample'
 
                 :
