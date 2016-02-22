@@ -3,13 +3,12 @@ require_relative './base_method'
 
 module DSN
 
-    #= JoinMethodメソッドクラス
-    # DSN記述のjoinメソッドを解析する。
+    #= JoinMethod class
+    # To analyze the join method of DSN description.
     #
     #@author NICT
     #
     class JoinMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "join"
 
         def initialize(delay, virtual, expr, srcs)
@@ -19,27 +18,27 @@ module DSN
             @expr    = expr
         end
 
-        #マージメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the join method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # mergeメソッド構文を解析する。
+        # To analyze the join method syntax.
         #
-        #@param [DSNtext] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
-        #@raise [DSNFormatError] メソッドとして,正しい形式でない場合
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
+        #@raise [DSNFormatError] Not in the correct format as a method
         #
         def self.parse(text)
-            # 可変長引数を含むため、まずはフォーマット指定なしで引数の数を取得する。
+            # To include the variable-length argument, first to get the number of arguments without the format specified.
             format = nil
             args = BaseMethod.parse(text, METHOD_NAME, format)
             if args.size < 3
                 raise DSNFormatError.new(ErrorMessage::ERR_JOIN_METHOD, text)
             end
-            # 引数の長さに応じたフォーマットを設定し、再parseする。
+            # Set the format corresponding to the length of the argument, and re-parse.
             format = [[TYPE_INTEGER], [TYPE_DATANAME], [TYPE_STRING]]
-            # 可変長引数を追加
+            # To add a variable-length argument.
             (args.size - 3).times do
                 format << [TYPE_DATANAME]
             end
@@ -53,7 +52,7 @@ module DSN
             return JoinMethod.new(delay, virtual, expr, srcs)
         end
 
-        #中間コードに変換する。
+        # It is converted into an intermediate code.
         def to_hash()
             return {
                 KEY_TYPE         => METHOD_NAME,

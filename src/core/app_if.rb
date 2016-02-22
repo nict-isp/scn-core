@@ -5,18 +5,18 @@ require 'singleton'
 require_relative './utils'
 require_relative './utility/validator'
 
-#= ApplicationとのRPCを管理するクラス
+#= Class that manages the RPC of the application
 #
-# RPCのためのポートやIPアドレスを管理し、RPC用サーバ/クライアントを生成する。
+# It manages the port and IP address for the RPC, to generate an RPC server and client.
 #
 #@author NICT
 #
 class ApplicationRPC
 
-    # 初期設定
+    # Initial setting
     #
-    #@param [Integer] rpc_rx_port RPC受信用ポート
-    #@param [Integer] rpc_ip_address RPC送信IPアドレス
+    #@param [Integer] rpc_rx_port    Port for RPC reception
+    #@param [Integer] rpc_ip_address IP address for RPC send
     #@return [void]
     #
     def initialize(rpc_rx_port, rpc_ip_address)
@@ -27,7 +27,7 @@ class ApplicationRPC
         ApplicationRPCClient.setup(@rpc_ip_address)
     end
 
-    # ApplicationとのRPCサーバ/クライアントを生成する
+    # To generate the RPC server and client for the application.
     #
     #@return [void]
     #
@@ -47,22 +47,22 @@ class ApplicationRPC
     end
 end
 
-#= ApplicationとのAPI用RPCサーバクラス
+#= RPC server class for the API of the Application.
 #
-# ApplicationからRPC経由でコールされるメソッドを定義する。
+# To define the methods that are called via RPC from application.
 #
 #@author NICT
 #
 class ApplicationRPCServer
     include Singleton
 
-    # サービス参加API
+    # API for the service to join
     #
-    #@param [String] service_name サービス名
-    #@param [Hash] service_info サービスの情報
-    #@param [Integer] port サービスの受信ポート番号
-    #@return [String] サービスID
-    #@raise [ArgumentError] サービス情報の形式が誤っている。
+    #@param [String]  service_name   Service name
+    #@param [Hash]    service_info   Service information
+    #@param [Integer] port           Receiving port number of the service
+    #@return [String] service ID
+    #@raise [ArgumentError] The format of the service information is incorrect.
     #
     def join_service(service_name, service_info, port)
         log_trace(service_name, service_info, port)
@@ -80,13 +80,13 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # サービス情報変更API
+    # API for the service information to change
     #
-    #@param [String] service_id サービスID
-    #@param [Hash] service_info サービスの情報
+    #@param [String] service_id    Service ID
+    #@param [Hash]   service_info  Service information
     #@return [void]
-    #@raise [ArgumentError] 存在しないサービスIDが指定された。/ サービス情報の形式が誤っている。
-    #@raise [Timeout::Error] ノード間通信でタイムアウトが発生した。
+    #@raise [ArgumentError]  Non-existent service ID is specified. / The format of the service information is incorrect.
+    #@raise [Timeout::Error] Time-out has occurred in the communication between the nodes.
     #
     def update_service(service_id, service_info)
         log_trace(service_id, service_info)
@@ -103,12 +103,12 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # サービス離脱API
+    # API for the service to leave
     #
-    #@param [String] service_id サービスID
+    #@param [String] service_id  Service ID
     #@return [void]
-    #@raise [ArgumentError] 存在しないサービスIDが指定された。
-    #@raise [Timeout::Error] ノード間通信でタイムアウトが発生した。
+    #@raise [ArgumentError]  Non-existent service ID is specified.
+    #@raise [Timeout::Error] Time-out has occurred in the communication between the nodes.
     #
     def leave_service(service_id)
         log_trace(service_id)
@@ -123,16 +123,16 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # データ送信API
+    # API for sending data
     #
-    #@param [String] service_id サービスID
-    #@param [String/Hash] data 送信データ
-    #@param [Integer] data_size 送信データサイズ
-    #@param [String] channel_id チャネルID
-    #@param [Boolean] sync Trueの時、送信の完了を待ち合せる
-    #@return [JSON] 送信したチャネルの配列
-    #@raise [ArgumentError] 存在しないチャネルIDが指定された / データフォーマットが異常
-    #@raise [Timeout::Error] 要求がタイムアウトした場合
+    #@param [String]      service_id  Service ID
+    #@param [String/Hash] data        Transmission data
+    #@param [Integer]     data_size   Transmission data size
+    #@param [String]      channel_id  Channel ID
+    #@param [Boolean]     sync        When True, the wait for the completion of the transmission
+    #@return [JSON] The array of the transmitted channels
+    #@raise [ArgumentError]  Non-existent service ID is specified. / The format of the data is incorrect.
+    #@raise [Timeout::Error] Request timed out.
     #
     def send_data(service_id, data, data_size, channel_id, sync)
         log_trace(service_id, data_size, channel_id, sync)
@@ -152,17 +152,17 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # DSN生成API
-    # Event Data Modelから、DSN記述を生成する。
-    #@param [String] table_name テーブル名
-    #@param [Hash] event_data_model Event Data Model
-    #@retrun [String] 生成したDSN記述。
-    #@raise [ArgumentError] Event Data Modelのフォーマットが不適切
+    # API for the DSN description to generate
+    # From Event Data Model, to generate a DSN description.
+    #
+    #@param [String] table_name        Table name
+    #@param [Hash]   event_data_model  Event Data Model
+    #@retrun [String] Generated DSN description
+    #@raise [ArgumentError] The format of the Event Data Model is incorrect.
     #
     def create_dsn(table_name, event_data_model)
         log_trace(table_name, event_data_model)
         log_time()
-        # DSN記述生成処理
         dsn_desc, overlay_name = DSNCreator.create_dsn(table_name, event_data_model)
         log_time()
         log_debug() {"overlay_name = #{overlay_name}, dsn desc = #{dsn_desc}"}
@@ -174,12 +174,12 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # オーバーレイ生成API
+    # API for the overlay to generate
     #
-    #@param [String] overlay_name オーバーレイ名
-    #@param [String] dsn_desc DSN記述
-    #@param [Integer] port メッセージ受信ポート
-    #@retrun [String] オーバーレイID
+    #@param [String]  overlay_name  Overlay name
+    #@param [String]  dsn_desc      DSN description
+    #@param [Integer] port          Message reception port
+    #@retrun [String] Overlay ID
     #
     def create_overlay(overlay_name, dsn_desc, port)
         log_trace(overlay_name, dsn_desc, port)
@@ -198,9 +198,9 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # オーバーレイ削除API
+    # API for the overlay to delete
     #
-    #@param [String] overlay_id オーバーレイID
+    #@param [String] overlay_id  Overlay ID
     #
     def delete_overlay(overlay_id)
         log_trace(overlay_id)
@@ -216,11 +216,11 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # オーバーレイ変更API
+    # API for the overlay to modify
     #
-    #@param [String] overlay_name オーバーレイ名
-    #@param [String] overlay_id オーバーレイID
-    #@param [String] dsn_desc DSN記述
+    #@param [String] overlay_name  Overlay name
+    #@param [String] overlay_id    Overlay ID
+    #@param [String] dsn_desc      DSN description
     #
     def modify_overlay(overlay_name, overlay_id, dsn_desc)
         log_trace(overlay_name, overlay_id, dsn_desc)
@@ -235,10 +235,10 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # チャネル取得API
+    # API for get the channel
     #
-    #@param [String] channel_id チャネルID
-    #@return [JSON] チャネル
+    #@param [String] channel_id  Channel ID
+    #@return [JSON] Channel
     #
     def get_channel(channel_id)
         log_trace(channel_id)
@@ -266,18 +266,18 @@ class ApplicationRPCServer
         raise ApplicationError, $!
     end
 
-    # サービスルックアップAPI
+    # API for the service to search
     #
-    #@param [Hash] query 検索クエリ
-    #@param [Integer] reqire 要求数
-    #@return [JSON] ヒットしたサービス情報の配列
+    #@param [Hash]    query    Search conditions of service
+    #@param [Integer] require  Number of requests
+    #@return [JSON] Array of the hit service information
     #
-    def discovery_service(query, reqire=nil)
-        log_trace(query, reqire)
+    def discovery_service(query, require=nil)
+        log_trace(query, require)
         log_time()
 
-        log_debug() {"discovery = \"#{query}\", reqire = \"#{reqire}\""}
-        services = Supervisor.discovery_service(query, reqire) 
+        log_debug() {"discovery = \"#{query}\", require = \"#{require}\""}
+        services = Supervisor.discovery_service(query, require) 
         services_info = services.map{|service| service.to_info()}
         json = JSON.dump(services_info)   
     
@@ -314,16 +314,16 @@ class ApplicationRPCServer
         return corrected_data
     end
 
-    # インスタンスメソッドをクラスに委譲
+    # Delegate instance method to the class.
     class << self
         extend Forwardable
         def_delegators :instance, *ApplicationRPCServer.instance_methods(false)
     end
 end
 
-#= ApplicationとのAPI用RPCクライアントクラス
+#= RPC client class for the API of the Application
 #
-# RPC経由でコールするApplicationのメソッドを定義する。
+# To define the method of the Application to call via RPC.
 #
 #@author NICT
 #
@@ -334,9 +334,9 @@ class ApplicationRPCClient
         @message_log_dir = ""
     end
 
-    # 初期設定
+    # Initial setting
     #
-    #@param [String] rpc_ip_address RPC送信IPアドレス
+    #@param [String] rpc_ip_address  IP address for RPC transmission
     #@return [void]
     #
     def setup(rpc_ip_address)
@@ -344,12 +344,12 @@ class ApplicationRPCClient
         @rpc_ip_address = rpc_ip_address
     end
 
-    # データ受信API
+    # API for receiving data
     #
-    #@param [String/Hash] data 受信データ
-    #@param [Integer] data_size 受信データサイズ
-    #@param [String] channel_id チャネルID
-    #@param [Integer] rpc_tx_port RPC用送信ポート
+    #@param [String/Hash] data         Received data
+    #@param [Integer]     data_size    Received data size
+    #@param [String]      channel_id   Channel ID
+    #@param [Integer]     rpc_tx_port  Transmit port for the RPC
     #@return [void]
     #
     def receive_data(data, data_size, channel_id, rpc_tx_port)
@@ -369,12 +369,11 @@ class ApplicationRPCClient
         log_error("receive_data() RPC connection error. RPC tx port = #{rpc_tx_port}", $!)
     end
 
-    # メッセージ受信API
+    # API for receiving message
     #
-    #@param [String] overlay_id メッセージを受信したオーバーレイID
-    #@param [String] message メッセージ
-    #@param [Integer] rpc_tx_port RPC用送信ポート
-    #@param [Proc] rpc_tx_port 自動実行処理ログ出力コールバック
+    #@param [String]  overlay_id   Overlay ID, which has received the message
+    #@param [String]  message      Message
+    #@param [Integer] rpc_tx_port  Transmit port for the RPC
     #@return [void]
     #
     def receive_message(overlay_id, message, rpc_tx_port)
@@ -397,10 +396,9 @@ class ApplicationRPCClient
         log_error("receive_message() RPC connection error. RPC tx port = #{rpc_tx_port}", $!)
     end
 
-    # インスタンスメソッドをクラスに委譲
+    # Delegate instance method to the class.
     class << self
         extend Forwardable
         def_delegators :instance, *ApplicationRPCClient.instance_methods(false)
     end
 end
-

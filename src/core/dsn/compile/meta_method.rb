@@ -4,41 +4,38 @@ require_relative './conditions'
 
 module DSN
 
-    #= MetaMethodメソッドクラス
-    # DSN記述のmetaメソッドを解析する。
+    #= MetaMethod class
+    # To analyze the meta method of DSN description.
     #
     #@author NICT
     #
     class MetaMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "meta"
 
-        # 空の場合の中間コード出力
         HASH_EMPTY = {}
 
-        #@return [Hash] 空の場合の中間コード出力
+        #@return [Hash] Intermediate code output when empty
         attr_reader :hash_empty
 
-        #@param [Hash] metas メタ情報のハッシュ
+        #@param [Hash] metas  Hash of the meta-information
         #
         def initialize(metas)
             @metas = metas
             @hash_empty = HASH_EMPTY
         end
 
-        #metaメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the meta method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # metaメソッド構文を解析する。
+        # To analyze the meta method syntax.
         #
-        #@param [DSNText] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
-        #@raise [DSNFormatError] metaメソッドの引数にフォーマットが正しくない値が設定された。
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
+        #@raise [DSNFormatError] Not in the correct format as a method
         #
         def self.parse(text)
-            # フォーマットの定義
             format = nil
             args = BaseMethod.parse(text, METHOD_NAME, format)
 
@@ -55,7 +52,7 @@ module DSN
             return MetaMethod.new(metas)
         end
 
-        #中間コードに変換する
+        # It is converted into an intermediate code.
         def to_hash()
 
             result = @metas.nil?() ? @hash_empty : @metas

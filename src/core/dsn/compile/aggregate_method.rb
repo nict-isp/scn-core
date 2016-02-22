@@ -3,13 +3,12 @@ require_relative './base_method'
 
 module DSN
 
-    #= AggregateMethodメソッドクラス
-    # DSN記述のaggregateメソッドを解析する。
+    #= AggregateMethod class
+    # To analyze the aggregate method of DSN description.
     #
     #@author NICT
     #
     class AggregateMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "aggregate"
 
         def initialize(data, timeout, delay, space)
@@ -19,23 +18,23 @@ module DSN
             @space_instance = space
         end
 
-        #フィルタメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the aggregate method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # aggregateメソッド構文を解析する。
+        # To analyze the aggregate method syntax.
         #
-        #@param [DSNtext] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
-        #@raise [DSNFormatError] メソッドとして,正しい形式でない場合
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
+        #@raise [DSNFormatError] Not in the correct format as a method
         #
         def self.parse(text)
-            # 第4引数が省略可のため、まず、引数の数を取得する。
+            # The fourth argument is for the optional, first, to get the number of arguments.
             format = nil
             args = BaseMethod.parse(text, METHOD_NAME, format)
 
-            # 引数の数に応じてformatを定義し、再paraseする。
+            # It defines the format depending on the number of arguments, and re-analysis.
             if args.size() == 4
                 format = [[TYPE_DATANAME],[TYPE_INTEGER],[TYPE_INTEGER],[TYPE_ANY]]
             else
@@ -51,7 +50,7 @@ module DSN
             return AggregateMethod.new(dataname, timeout, delay, space)
         end
 
-        #中間コードに変換する。
+        # It is converted into an intermediate code.
         def to_hash()
             space = @space_instance.nil?() ? nil : @space_instance.to_hash[KEY_SPACE]
             return {

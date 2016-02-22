@@ -7,10 +7,10 @@ require 'time'
 require_relative './errors'
 load 'config.rb'
 
-# オブジェクトをディープコピーする
+# To deep copy the object.
 #
-#@param obj ディープコピーするオブジェクト
-#@return ディープコピーしたオブジェクト
+#@param [Object] obj  Object to deep copy
+#@return  Deep copied object
 #
 def deep_copy(obj)
     return Marshal.load(Marshal.dump(obj))
@@ -18,36 +18,36 @@ end
 
 DATA_TIME_FOMAT = "%Y-%m-%dT%H%M%S"
 
-# システム秒を時刻文字列に変換する
+# To convert the system in seconds to time string
 #
-#@param [Integer] システム秒
-#@return [String] 時刻文字列
+#@param [Integer] second  System in seconds
+#@return [String] Time string
 #
 def sec_to_time(second)
     return Time.at(second).strftime(DATA_TIME_FOMAT)
 end
 
-# 時刻文字列をシステム秒に変換する
+# To convert a time string to the system in seconds
 #
-#@param [String] date 時刻文字列
-#@return [Integer] システム秒
+#@param [String] date  Time string
+#@return [Integer] System in seconds
 #
 def time_to_sec(date)
     return Time.parse(date).to_i
 end
 
-# Fatalログ出力メソッド
+# Method to output the Fatal log
 #
-#@param [String] message 出力メッセージ
+#@param [String] message  Output message
 #@return [void]
 #
 def log_fatal(message)
     $logger.fatal(message)
 end
 
-# Errorログ出力メソッド
+# Method to output the Error log
 #
-#@param [String] message 出力メッセージ
+#@param [String] message  Output message
 #@return [void]
 #
 def log_error(message, error=nil)
@@ -58,75 +58,76 @@ def log_error(message, error=nil)
     $logger.error(addruninfo(message))
 end
 
-# Warningログ出力メソッド
+# Method to output the Warning log
 #
-#@param [String] message 出力メッセージ
+#@param [String] message  Output message
 #@return [void]
 #
 def log_warn(message)
     $logger.warn(message)
 end
 
-# Infoログ出力メソッド
+# Method to output the Info log
 #
-#@param [String] message 出力メッセージ
+#@param [String] message  Output message
 #@return [void]
 #
 def log_info(message)
     $logger.info(message)
 end
 
-# Debugログ出力メソッド
-# 文字列生成コストによる性能劣化を防止するため、ログ出力文字列はブロック文で受け取る
+# Method to output the Debug log
+# In order to prevent performance degradation due to character string generation cost, 
+# log output string is received in block statement.
 #
-#@param [String] message 出力メッセージ
+#@param [String] message  Output message
 #@return [void]
 #
 def log_debug()
     $logger.debug(addruninfo(yield)) if $logger.debug?()
 end
 
-# Traceログ出力メソッド
+# Method to output the Trace log
 #
-#@param [Array<Object>] args 呼び出し元の引数リスト
+#@param [Array<Object>] args  Caller's argument list
 #@return [void]
 #
 def log_trace(*args)
     $logger.debug(addruninfo(args.map{ |arg| arg.to_s }.join(", "))) if $trace && $logger.debug?()
 end
 
-# Timeログ出力メソッド
-# 性能測定に用いる
+# Method to output the time log
+# Used for performance measurement.
 #
-#@param [String] message 出力メッセージ
+#@param [String] message   Output message
 #@return [void]
 #
 def log_time(message=nil)
     $logger.info("TIME:" << addruninfo(message)) if $benchmark
 end
 
-# メッセージにプログラム実行情報を追加する。
+# To add a program execution information to the message
 #
-#@param [String] message 出力メッセージ
-#@return [String] プログラムの実行情報を追加した文字列
+#@param [String] message  Output message
+#@return [String] String add the execution information of the program
 #
 def addruninfo(message)
     return "[#{self.class.name}] #{caller[1]} : #{message}"
 end
 
-# IPアドレスのフォーマットをチェックする。
+# To check the format of the IP address
 #
-#@param [String] ipaddress IPアドレス
-#@return [True] IPアドレスの指定が正しい,
-#@return [False] IPアドレスの指定が誤り
+#@param [String] ipaddress  IP address
+#@return [True]  Specifying the IP address is correct,
+#@return [False] Specifying the IP address is incorrect
 #
 def set_ipaddress_ok?(ipaddress)
     log_trace(ipaddress)
 
-    # サブネットの指1G定有無チェック
+    # To check the presence or absence of a specified subnet.
     if /(.+)\/.+/ =~ ipaddress
         begin
-            # IPアドレスの体裁チェック
+            # To check the appearance of the IP address.
             $ip = $1
             log_info("ip #{$ip}")
             IPAddr.new(ipaddress).to_s
@@ -141,18 +142,18 @@ def set_ipaddress_ok?(ipaddress)
     return result
 end
 
-#@param [String] ipaddress IPアドレス
-#@return [True] このノード のIPアドレスである
-#@return [False] このノードのIPアドレスではない
+#@param [String] ipaddress  IP address
+#@return [True]  It is the IP address of this node,
+#@return [False] Not the IP address of this node
 #
 def current_node?(ipaddress)
     return ipaddress == $ip
 end
 
-# JSON化した際の、オブジェクトのデータサイズを再帰的に計算する
+# When turned into JSON, recursively calculate the data size of the object
 #
-#@param [Object] o 計算対象のオブジェクト
-#@return [Integer] データサイズ（byte）
+#@param [Object] o  Object to be calculated
+#@return [Integer]  Data size (byte)
 #
 def calc_size(o)
     if o.instance_of? Hash

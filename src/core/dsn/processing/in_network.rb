@@ -2,15 +2,15 @@
 require_relative '../../utils'
 require_relative './processing_factory'
 
-#= 網内データ処理クラス
-# アプリケーション要求に基づき、複数の中間処理を実行する
+#= In-Network data processing class
+# Based on the application request, to perform multiple intermediate processing.
 #
 #@author NICT
 #
 class InNetoworkDataProcessing
 
-    #@param [String] overlay_id オーバーレイID
-    #@param [Hash] request アプリケーション要求
+    #@param [String] overlay_id  Overlay ID
+    #@param [Hash]   request     Application request
     #
     def initialize(request)
         @request = nil
@@ -18,9 +18,9 @@ class InNetoworkDataProcessing
         update_request(request)
     end
 
-    # アプリケーション要求に基づき中間処理を再生成する。
+    # To regenerate the intermediate processing on the basis of the application request.
     #
-    #@param [Hash] request アプリケーション要求
+    #@param [Hash] request  Application request
     #@return [void]
     #
     def update_request(request)
@@ -35,8 +35,8 @@ class InNetoworkDataProcessing
         @request = request
     end
 
-    #@param [Array<Hash>] data 送信データ
-    #@return [Array<Hash>] 中間処理を実行した送信データ
+    #@param [Array<Hash>] data  Send data
+    #@return [Array<Hash>] Send data after performing the intermediate processing
     #
     def execute(data)
         processed_data = @processings.inject(data) { |processing_data, processing|

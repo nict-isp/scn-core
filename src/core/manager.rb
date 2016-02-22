@@ -10,8 +10,8 @@ require_relative './dsn/dsn_creator'
 require_relative './dsn/event_manager'
 require_relative './dsn/processing_manager'
 
-#= SCNミドルウェアのメインクラス
-# SCNミドルウェアのプロセス本体。
+#= The main class of SCN middleware
+# The body of process for SCN middleware.
 #
 #@author NICT
 #
@@ -21,11 +21,11 @@ class SCNManager
         @rpc_initial_rx_port = $config[:rpc_initial_rx_port]
     end
 
-    # SCNミドルウェアの参加通知を行い、各種初期設定を行う。
+    # It performs the participation notification SCN middleware, performs various initialization settings.
     #
-    #@param [String] ip 自ノードのIPアドレス
-    #@param [Integer] mask ネットマスク
-    #@param [String] default_id デフォルトのミドルウェアID（テスト時のみ指定する）
+    #@param [String]  ip          IP address of the local node
+    #@param [Integer] mask        Netmask
+    #@param [String]  default_id  Middleware ID of default(specify only during the test)
     #@return [void]
     #
     def setup(ip, mask, default_id=nil)
@@ -42,7 +42,7 @@ class SCNManager
             :stdin          => $stdin,
             :request_slice  => $config[:request_slice],
         })
-        # NCPS へミドルウェアの起動を通知する。
+        # To notify the start of middleware to the NCPS.
         begin
             @middleware_id, service_server = NCPS.start()
             if not default_id.nil?()
@@ -62,7 +62,7 @@ class SCNManager
         DSNExecutor.setup(@middleware_id, $config[:dsn_observe_interval], $config[:dsn_auto_execute_interval])
     end
 
-    #  RPCサーバを起動する。
+    # To start the RPC server.
     #
     #@return [void]
     #
@@ -81,10 +81,10 @@ class SCNManager
         @rpc_server.run
     end
 
-    # SCNミドルウェアの離脱通知を行い、各種スレッドを停止する。
+    # It performs a leave notification of SCN middleware, to stop the various threads.
     #
     #@return [void]
-    #@todo 停止処理を実装する。
+    #@todo To implement the stop processing.
     #
     def stop()
         log_trace()
@@ -92,14 +92,14 @@ class SCNManager
         begin
             NCPS.stop()
         rescue
-            # 例外が発生しても無視して処理を継続する。
+            # To continue the process to ignore the exception that occurred.
         end
         log_info("middleware ID(=#{@middleware_id}) is unregisterd.")
     end
 end
 
-#= Applicationとの初期通信用RPCサーバクラス
-#  Applicationからの最初の接続を受け付けるRPCサーバ。
+#= RPC server class for the initial communication with the application
+#  PC server that accepts the initial connection from the application.
 #
 #@author NICT
 #
@@ -114,17 +114,17 @@ class SCNManagerRPCServer
         @application_count = 1
     end
 
-    # Applicationサーバーを起動する。
+    # To start the application server.
     #
     def start()
         @application_rpc.start()
     end
 
-    # ApplicationとのRPC用サーバを開始し、Application側の受信ポートを通知する。
+    # To start the RPC server with the application, to notify the receiving port of the application side
     #
     #@return [Array]
-    #  (Integer) Application側の送信ポート、
-    #  (Integer) Application側の受信ポート
+    #  (Integer) Transmission port of application side
+    #  (Integer) Receiving port of application side
     #
     def connect_app()
         log_trace()
@@ -132,16 +132,16 @@ class SCNManagerRPCServer
         rpc_tx_port = get_rpc_tx_port()
         log_info("RPC TX port = #{rpc_tx_port}")
 
-        # SCN側の受信ポートがアプリケーション側の送信ポート、
-        # SCN側の送信ポートがアプリケーション側の受信ポートになる。
+        # Receiving port of the SCN side is to the transmission port of the application side.
+        # Transmission port of the SCN side is to the receiving port of the application side.
         return @rpc_rx_port, rpc_tx_port
     end
 
     private
 
-    # SCN側の送信ポート番号発行メソッド
+    # Method to issue the transmission port number of SCN side
     #
-    #@return [Integer] SCN側の送信ポート
+    #@return [Integer] Transmission port of SCN side
     #
     def get_rpc_tx_port()
         rpc_tx_port = @rpc_tx_port_base + @application_count

@@ -3,40 +3,37 @@ require_relative './base_method'
 
 module DSN
 
-    #= IDMethodメソッドクラス
-    # DSN記述のidメソッドを解析する。
+    #= IDMethod class
+    # To analyze the id method of DSN description.
     #
     #@author NICT
     #
     class IDMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "id"
 
-        # 空の場合の中間コード出力
         HASH_EMPTY = ""
 
-        #@return [Array] 空の場合の中間コード出力
+        #@return [Array]  Intermediate code output when empty
         attr_reader :hash_empty
 
-        #@param [String] id チャネルの識別子
+        #@param [String] id  Identifier of channel
         #
         def initialize(id)
             @id         = id
             @hash_empty = HASH_EMPTY
         end
 
-        #idメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the id method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # idメソッド構文を解析する。
+        # To analyze the id method syntax
         #
-        #@param [DSNText] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
         #
         def self.parse(text)
-            # フォーマットの定義
             format = [[TYPE_ANY]]
             args   = BaseMethod.parse(text, METHOD_NAME, format)
 
@@ -45,7 +42,7 @@ module DSN
             return IDMethod.new(id)
         end
 
-        #中間コードに変換する
+        # It is converted into an intermediate code.
         def to_hash()
 
             result = @id.nil?() ? @hash_empty : @id

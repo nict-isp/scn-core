@@ -1,16 +1,16 @@
 #-*- coding: utf-8 -*-
 require_relative '../compile/conditions'
 
-#= 状態監視クラス
+#= State monitoring class
 #
 #@author NICT
 #
 class Events
 
-    #@param [Hash] app_request 状態監視要求
-    #@example 状態監視要求例
+    #@param [Hash] app_request  State monitoring request
+    #@example Examples of state monitoring request
     #{
-    #   "event_name1" => {}, # イベント情報。詳細は Event#initialize(app_request) 参照
+    #   "event_name1" => {}, # Event information. For more information, see Event#initialize(app_request).
     #   "event_name2" => {},
     #       :
     #}
@@ -22,9 +22,9 @@ class Events
         update_request(app_request)
     end
 
-    # イベント名ごとのイベントクラスを生成する。
+    # To generate an event class for each event name.
     #
-    #@param [Hash] app_request 状態監視要求
+    #@param [Hash] app_request  State monitoring request
     #@return [void]
     #
     def update_request(app_request)
@@ -40,7 +40,7 @@ class Events
                 end
             end
 
-            # 古いイベントを削除
+            # To remove the old event.
             (@events.keys - app_request.keys).each do |event_name|
                 @events.delete(event_name)
             end
@@ -49,10 +49,10 @@ class Events
         end
     end
 
-    # 各イベントクラスに状態監視を依頼する
+    # To ask the state monitoring in each event class
     #
-    #@param [String] channel チャンネル名
-    #@param [Hash<String, Object>] data 情報抽出処理後のデータ
+    #@param [String]               channel  Channel name
+    #@param [Hash<String, Object>] data     Data after the information extraction process
     #@return [void]
     #
     def observe(channel, data)
@@ -60,11 +60,11 @@ class Events
         @events.each{ |event_name, event| event.observe(channel, data) }
     end
 
-    # 発火したイベントを取得する
+    # To get the firing event
     #
-    #@param [Hash<String, Nil>] channles 監視対象のチャンネル
-    #@param [Float] time 前回からの経過時間
-    #@return [Hash<String, Boolean>] 発火したイベントの、イベント名とon/offの状態（onの時、true）
+    #@param [Hash<String, Nil>] channles  Channel to be monitored
+    #@param [Float]             time      Elapsed time from the previous
+    #@return [Hash<String, Boolean>] Event name and on/off state of firing events(When on, true)
     #
     def get_fire_event(channels, time)
         events = {}
@@ -75,9 +75,9 @@ class Events
         return events
     end
 
-    # イベントの発火状態を設定する
+    # To set the firing state of the event
     #
-    #@param [Hash<String, Boolean>] events 発火したイベントの、イベント名とon/offの状態（onの時、true）
+    #@param [Hash<String, Boolean>] events  Event name and on/off state of firing events(When on, true)
     #@return [void]
     #
     def set_fire_event(events)
@@ -89,12 +89,12 @@ class Events
         end
     end
 
-    # イベント状態取得I/F向け
+    # For interface to retrieve the event state
     #
-    #@return [Hash] イベント状態
+    #@return [Hash] Event state
     #@example
     #{
-    #   "event_name1" => {},     # イベント状態。詳細はEvent#to_hash()を参照
+    #   "event_name1" => {},     # Event information. For more information, see Event#to_hash().
     #   "event_name2" => {},
     #       ：
     #}
@@ -104,18 +104,18 @@ class Events
     end
 end
 
-#= イベントの状態・発火を管理するクラス
+#= Class that manages events of the state and the ignition
 #
 #@author NICT
 #
 class Event
 
-    #@param [Hash] app_request 状態監視要求
-    #@example 状態監視要求例
+    #@param [Hash] app_request  State monitoring request
+    #@example Example of state monitoring request
     #{
-    #   "on"      => []              # イベントをonにする条件。詳細はTriggerクラス参照
-    #   "off"     => []              # イベントをoffにする条件。詳細はTriggerクラス参照
-    #   "channel" => "channel_name1" # 監視対象のチャンネル名
+    #   "on"      => []              # Conditions for the event to on. For more information, see Trigger class.
+    #   "off"     => []              # Conditions for the event to off. For more information, see Trigger class.
+    #   "channel" => "channel_name1" # Channel name to be monitored
     #}
     #
     def initialize(app_request)
@@ -126,16 +126,16 @@ class Event
         update_request(app_request)
     end
 
-    # アプリケーション要求から、トリガクラスを生成する
+    # From the application request, and generates a trigger class
     #
-    #@param [Hash] app_request 状態監視要求
+    #@param [Hash] app_request  State monitoring request
     #@return [void]
     #
     def update_request(app_request)
         log_debug() { app_request }
 
         if @app_request != app_request
-            # 少しでも変化があれば、インスタンスを作り直す
+            # If there is a change, even a little, re-create the instance.
             #
             @status_on       = app_request["state"] | false
             @triggers[true]  = app_request["off"].map{ |request| Trigger.new(request) }
@@ -146,10 +146,10 @@ class Event
         end
     end
 
-    # 各トリガクラスにデータ受信を通知する。
+    # To notify the data reception in each trigger class.
     #
-    #@param [String] channel チャンネル名
-    #@param [Array<Hash>] data_list 受信データ
+    #@param [String]      channel    Channel name
+    #@param [Array<Hash>] data_list  Received data
     #@return [void]
     #
     def observe(channel, data_list)
@@ -157,11 +157,11 @@ class Event
         @triggers[@status_on].each{ |trigger| trigger.observe(channel, data_list) }
     end
 
-    # イベントの発火状態を取得する
+    # To get the firing state of the event
     #
-    #@param [Hash<String, Nil>] channles 監視対象のチャンネル
-    #@param [Float] time 前回からの経過時間
-    #@return [Boolean, Boolean] イベントが発火した時、true。また、イベント名とon/offの状態（onの時、true）
+    #@param [Hash<String, Nil>] channles  Channel to be monitored
+    #@param [Float]             time      Elapsed time from the previous
+    #@return [Boolean, Boolean] When the event is fired, true. Event name and the on/off state. (When on, true)
     #
     def fire?(channles, time)
         if @triggers[@status_on].any? { |trigger| trigger.fire?(channles, time) }
@@ -175,9 +175,9 @@ class Event
         return result, @status_on
     end
 
-    # イベントのon/off状態を設定する。
+    # To set the on/off state of the event
     #
-    #@param [Boolean] status_on イベント状態（onの時、true）
+    #@param [Boolean] status_on  Event state (when on, true)
     #@return [void]
     #
     def set_status_on(status_on)
@@ -187,7 +187,7 @@ class Event
         end
     end
 
-    # トリガの状態をリセットする。
+    # To reset the state of the trigger
     #
     #@return [void]
     #
@@ -195,30 +195,30 @@ class Event
         @triggers[@status_on].each{ |trigger| trigger.reset() }
     end
 
-    # イベント状態取得I/F向け
+    # For interface to retrieve the event state
     #
-    #@return [True] イベントON
-    #@return [False] イベントOFF
+    #@return [True]  Event on
+    #@return [False] Event off
     #
     def to_hash()
         return @status_on
     end
 end
 
-#= イベントの発火を判定するクラス
+#= Class that determines the firing of event
 #
 #@author NICT
 #
 class Trigger
 
-    #@param [Hash] app_request 状態監視要求
-    #@example 状態監視要求例
+    #@param [Hash] app_request  State monitoring request
+    #@example Example of state monitoring request
     #{
-    #   "trigger_interval" => 10,  # 発火周期。
-    #   "trigger_conditions" => {   # 発火条件。詳細はConditionクラス参照
+    #   "trigger_interval" => 10,   # Firing cycle.
+    #   "trigger_conditions" => {   # Firing condition. For more information, see Condition class.
     #       "count" => [">=", 10]
     #   },
-    #   "conditions" => {           # 監視対象のデータ。詳細はConditionクラス参照
+    #   "conditions" => {           # Data to be monitored. For more information, see Condition class.
     #       "rain" => [">=", 25.0]
     #   },
     #}
@@ -234,10 +234,10 @@ class Trigger
         reset()
     end
 
-    # 状態監視を実行する
+    # To run the state monitoring
     #
-    #@param [String] channel チャンネル名
-    #@param [Array<Hash>] data_list 受信データ
+    #@param [String]      channel    Channel name
+    #@param [Array<Hash>] data_list  Received data
     #@return [void]
     #
     def observe(channel, data_list)
@@ -248,11 +248,11 @@ class Trigger
         log_debug{"count #{@count}"}
     end
 
-    # トリガの発火状態を取得する
+    # To get the firing state of the trigger
     #
-    #@param [Hash<String, Nil>] channles 監視対象のチャンネル
-    #@param [Float] time 前回からの経過時間
-    #@return [Boolean] イベントが発火した時、true
+    #@param [Hash<String, Nil>] channles  Channel to be monitored
+    #@param [Float]             time      Elapsed time from the previous
+    #@return [Boolean] When the event is fired, true
     #
     def fire?(channles, time)
         result = false
@@ -268,7 +268,7 @@ class Trigger
         return result
     end
 
-    # トリガの状態をリセットする。
+    # To reset the state of the trigger.
     #
     #@return [void]
     #

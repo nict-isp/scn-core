@@ -15,42 +15,42 @@ require_relative './string_method'
 
 module DSN
 
-    #= データ転送クラス
-    # DSN記述のtransmission構文を中間コードに変換する。
+    #= Data transfer class
+    # To convert the transmission syntax of DSN described in the intermediate code.
     #
     #@author NICT
     #
     class Transmission < Syntax
 
-        #右辺値の解析結果を返すハッシュのキー
+        # The key of hash that returns a result of analysis of the right-hand side value
         SCRATCH_DATA = "scratch"
         PROCESSING_DATA = "processing"
 
-        #@return [Communication] 対応するチャンネルのインスタンス
+        #@return [Communication] Instance of the corresponding channel
         attr_reader :channel
-        #@return [Communication] 対応するスクラッチのインスタンス
+        #@return [Communication] Instance of the corresponding scratch
         attr_reader :scratch
-        #@return [Integer] DSN記述の行数
+        #@return [Integer] Number of lines in the DSN description
         attr_reader :line_offset
-        #@return [Array<Processing>] 実施されるメソッドに対応するインスタンス
+        #@return [Array<Processing>] Instance that corresponds to the method to be executed
         attr_reader :processings
-        #@return [SelectMethod] selectメソッドに対応するインスタンス
+        #@return [SelectMethod] Instance that corresponds to the select method
         attr_reader :select
-        #@return [QoSMethod] QoSメソッドに対応するインスタンス
+        #@return [QoSMethod] Instance that corresponds to the QoS method
         attr_reader :qos
-        #@return [MetaMethod] metaメソッドに対応するインスタンス
+        #@return [MetaMethod] Instance that corresponds to the meta method
         attr_reader :meta
-        #@return [IDMethod] idメソッドに対応するインスタンス
+        #@return [IDMethod] Instance that corresponds to the id method
         attr_reader :id
 
-        #@param [Communication] channel 対応するチャンネルのインスタンス
-        #@param [Communication] scratch 対応するスクラッチのインスタンス
-        #@param [Processing] processing 実施されるメソッドに対応するインスタンス
+        #@param [Communication] channel     Instance of the corresponding channel
+        #@param [Communication] scratch     Instance of the corresponding scratch
+        #@param [Processing]    processing  Instance that corresponds to the method to be executed
         #
         def initialize()
             super()
             @syntax_name    = "transmission"
-            @continued_line = "" # 前の行からの続き
+            @continued_line = "" # continuation of the previous line
 
             @processings    = []
             @select         = SelectMethod.new(nil)
@@ -59,11 +59,11 @@ module DSN
             @id             = IDMethod.new(nil)
         end
 
-        # 構文開始判定処理
+        # Syntax start determination processing
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [Syntax] DSN記述構文サブクラスのインスタンス
-        #@return [nil] 構文開始条件不成立
+        #@param [String] line  String line of DSN description
+        #@return [Syntax] Instance of a subclass of DSN description syntax
+        #@return [nil]    Syntax start condition is not satisfied
         #
         def self.start_line?(line)
             log_trace(line)
@@ -74,11 +74,11 @@ module DSN
             end
         end
 
-        # 構文解析処理
+        # Parsing process
         #
-        #@param [String] line DSN記述の文字列一行
-        #@param [Integer] offset 文字列の先頭行数
-        #@return [Boolean] 構文終了
+        #@param [String]  line    String line of DSN description
+        #@param [Integer] offset  The number of the first line of the string
+        #@return [Boolean] Syntax Exit
         #
         def parse_line(line, offset)
             super(line, offset)
@@ -103,24 +103,24 @@ module DSN
             end
         end
 
-        # channel名解析処理
+        # Channel name analysis processing
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [String] 未解析文字列
+        #@param [String] line  String line of DSN description
+        #@return [String] Unanalyzed string
         #
         def _parse_channel(line)
             @channel_name, left_line = DSNText.split(line, "<~", 2, false)
-            # start_lineでmatch後の呼び出しのため、channel_nameの妥当性はチェック不要
+            # For call after match in start_line, validity of channel_name check unnecessary.
             if left_line.nil?
                 left_line = ""
             end
             return left_line
         end
 
-        # scratch名解析処理
+        # Scratch name analysis processing
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [String] 未解析文字列
+        #@param [String] line  String line of DSN description
+        #@return [String] Unanalyzed string
         #
         def _parse_scratch(line)
             log_trace(line)
@@ -140,14 +140,14 @@ module DSN
             return left_line
         end
 
-        # 構文内部解析処理
+        # Syntax internal analysis process
         #
-        #@param [StateDo] state DSN記述のstate doブロックを管理するインスタンス
+        #@param [StateDo] state  Instance that manages the state do block of DSN description
         #@example
         #  channel_name <~ scratch_name
-        #  channel_name <~ scratch_name.filter(condtions)等
-        #@return [Transmission] Transmissionクラスのインスタンス
-        #@raise [DSNFormatError] transmission構文として正しくないデータが設定された。
+        #  channel_name <~ scratch_name.filter(condtions)
+        #@return [Transmission] Instance of Transmission class
+        #@raise [DSNFormatError] Incorrect data as transmission syntax has been set
         #
         def parse_inside(state)
 
@@ -189,7 +189,7 @@ module DSN
             raise DSNFormatError.new(err.message, @dsn_text)
         end
 
-        # 中間処理構文解析処理
+        # Intermediate treatment parsing process
         def _parse_method(processing)
             method    = Hash.new()
             proc_text = DSNText.new(@dsn_text.text, @dsn_text.line_offset, processing)
@@ -216,7 +216,7 @@ module DSN
             when IDMethod.match?(proc_text)
                 method["id"]         = IDMethod.parse(proc_text)
             else
-                # transmission構文として取り得ないメソッドの場合
+                # The case of a method that can not be taken as a transmission syntax.
                 if /^(\w+)\(.*\)$/ =~ @processing_line
                     msg = "method: #{$1}"
                 else
@@ -227,17 +227,17 @@ module DSN
             return method
         end
 
-        # チャネル識別名
+        # Channel identification name
         #
-        #@return [String] チャネルを指定する名称
+        #@return [String] Name to specify the channel
         #
         def servicelink()
             return "#{@line_offset}:#{@channel_name}<~#{@scratch_name}"
         end
 
-        #中間コードを生成する。
+        # It is converted into an intermediate code.
         #
-        #@return [Hash<String,String>] 中間コード(src,dst)
+        #@return [Hash<String,String>] Intermediate code(src,dst)
         #
         def to_hash()
             return { KEY_TRANS_SRC => @scratch.service_name,

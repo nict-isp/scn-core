@@ -3,13 +3,12 @@ require_relative './base_method'
 
 module DSN
 
-    #= StringMethodメソッドクラス
-    # DSN記述のstringメソッドを解析する。
+    #= StringMethod class
+    # To analyze the DSN description string method.
     #
     #@author NICT
     #
     class StringMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "string"
 
         def initialize(data_name, operator, param)
@@ -18,16 +17,16 @@ module DSN
             @param     = param
         end
 
-        #フィルタメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the string method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # stringメソッド構文を解析する。
+        # To analyze the string method syntax.
         #
-        #@param [DSNtext] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
-        #@raise [DSNFormatError] メソッドとして,正しい形式でない場合
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
+        #@raise [DSNFormatError] Not in the correct format as a method
         #
         def self.parse(text)
             format = nil
@@ -41,7 +40,7 @@ module DSN
             data_name = args[0].single_line
             operator  = args[1].single_line
 
-            # オペレーション毎に引数が異なる。
+            # Argument is different for each operation.
             case operator
             when "removeBlanks", "lowerCase", "upperCase", "alphaReduce", "numReduce"
                 if args.size() != 2
@@ -52,7 +51,7 @@ module DSN
                 if args.size() != 3
                     raise DSNFormatError.new(ErrorMessage::ERR_STRING_FORMAT1, text)
                 end
-                # 文字列の前後に強制的に付与される「"(ダブルクォート)」を削除する。
+                # To delete a forcibly applied to the front and back of the character string "" (double quotes) ".
                 param << args[2].single_line.slice(/[^"].*/).slice(/.*[^"]/)
 
             when "replace", "regexReplace"
@@ -68,7 +67,7 @@ module DSN
             return StringMethod.new(data_name, operator, param)
         end
 
-        #中間コードに変換する。
+        # It is converted into an intermediate code.
         def to_hash()
             return {
                 KEY_STRING => {
@@ -77,7 +76,5 @@ module DSN
                     KEY_PARAM            => @param
                 }}
         end
-
     end
-
 end

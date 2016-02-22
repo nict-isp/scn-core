@@ -1,13 +1,13 @@
 #-*- coding: utf-8 -*-
 require_relative './processing'
 
-#= 文字列処理クラス
+#= String processing class
 #
 #@author NICT
 #
 class StringOperation < Processing
 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #
     def initialize(conditions)
         super
@@ -16,10 +16,10 @@ class StringOperation < Processing
         @param     = conditions["param"]
     end
 
-    # 文字列処理を実施する
+    # To execute the string processing.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@return 文字列処理を行なったデータ
+    #@param [Hash] processing_data  Intermediate processing data
+    #@return Data was subjected to string processing
     #
     def execute(processing_data)
 

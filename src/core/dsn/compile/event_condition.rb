@@ -4,17 +4,17 @@ require_relative './dsn_define'
 
 module DSN
 
-    #= 不等号の処理を中間コード化、および
-    #  中間コードをもとに条件判定をおこなう。
+    #= Processing of inequality to intermediate encoding. In addition, 
+    # the condition for determining based on the intermediate code.
     #
     #@author NICT
     #
     class EventCondition < SignCondition
 
-        #EventCondtionの対象文字列かどうかを判定する。
+        # Determines whether or not the target string of EventCondtion.
         #
-        #@param [DSNText] 検査対象文字列 
-        #@return [Boolean] 対象ならtrue,そうでなければfalse
+        #@param [DSNText] expression  Inspected string
+        #@return [Boolean] True if target, false otherwise
         #
         def self.match?(expression)
             if expression.single_line =~ REG_EVENTS_CONDITION
@@ -23,10 +23,10 @@ module DSN
             return false
         end
 
-        #文字列からインスタンスを作成する。
+        # To create an instance from a string.
         #
-        #@param [DSNText] expression 変換対象の文字列
-        #@return [SignCondtion] SignCondtionのインスタンス
+        #@param [DSNText] expression  String to be converted
+        #@return [EventCondition] Instance of EventCondition
         #
         def self.parse(expression)
             reg = REG_EVENTS_CONDITION.match(expression.single_line)

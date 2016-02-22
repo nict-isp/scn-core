@@ -2,10 +2,10 @@
 require_relative './processing'
 
 #@private
-#= 集約・統合処理定義クラス
+#= Aggregation and integration process definition class
 #
-module AggrefateDefine
-    # 項目
+module AggregateDefine
+    # item
     NAME  = "name"
 
     UNIT  = "unit"
@@ -23,15 +23,15 @@ module AggrefateDefine
     COUNT = "count"
 end
 
-#= 集約・統合処理クラス（インナーサービス向け）
+#= Aggregation and integration process definition class(for inner service)
 #
 #@author NICT
 #
 class Aggregate < Processing
-    include AggrefateDefine
+    include AggregateDefine
     include TimeSpaceProcessing
 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #
     def initialize(conditions)
         super
@@ -40,9 +40,9 @@ class Aggregate < Processing
         update(conditions)
     end
 
-    # 中間処理要求を更新する。 
+    # To update the intermediate processing request. 
     # 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #@return [void]
     #
     def update(conditions)
@@ -58,11 +58,11 @@ class Aggregate < Processing
         end
     end
 
-    # 集約・統合処理を実施する
-    # 空間を指定間隔に分割した後、同じインデックスを持つデータを集計する。
+    # To execute the aggregation and integration process.
+    # After dividing the space into specified intervals, to aggregate the data having the same index.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@retrun [Array] 空データ（いったん集約するため）
+    #@param [Hash] processing_data  Intermediate processing data
+    #@retrun [Array] Empty data(in order to once aggregated)
     #
     def execute(processing_data)
         processing_values(processing_data, :each) { |value|
@@ -74,10 +74,10 @@ class Aggregate < Processing
         return []
     end
 
-    # 蓄積したデータを集計して返す。蓄積したデータはクリアする。
+    # Return by aggregating the accumulated data. Accumulated data is cleared.
     #
-    #@return 集約・統合処理を行なったデータ
-    #@example 集約・統合データ
+    #@return Data was subjected to aggregation and integration process
+    #@example aggregation and integration data
     #[
     #   {
     #       "name" => "rainfall",
@@ -115,7 +115,7 @@ class Aggregate < Processing
         }
         @cache.each do |(lat, long), values|
             if @latitude.nil?
-                # 空間の指定がない場合は、全データを包括する空間を範囲とする
+                # If it does not have a designated space, the range of the space to cover all the data.
                 info[SOUTH], info[NORTH] = values.each_with_object([]) {|v, a| a << v["latitude"]}.minmax
                 info[WEST],  info[EAST]  = values.each_with_object([]) {|v, a| a << v["longitude"]}.minmax
             else
@@ -123,7 +123,7 @@ class Aggregate < Processing
                 info[WEST],  info[EAST]  = get_start_end(@longitude, long)
             end
 
-            # インデックス毎に集計
+            # Aggregated for each index.
             summary = {}
             summary[SUM]   = values.inject(0) {|sum, value| sum += value[@name] }
             summary[COUNT] = values.size
@@ -132,24 +132,24 @@ class Aggregate < Processing
             result << summary.merge(info)
         end
         log_trace(result)
-        reset(now)  # 出力済みのデータを削除
+        reset(now)  # To remove the output data already.
         return result
     end
 
     private
 
-    # 集計データのキーを作成する。
+    # To create a key aggregate data.
     # 
     def get_key(value)
         if @latitude.nil?
-            # 空間の指定がない場合は、すべて同じキーで集計する
+            # If it does not have a designated space, all aggregated in the same key.
             return [nil, nil]
         else
             return [get_index(@latitude, value), get_index(@longitude, value)]
         end
     end
 
-    # 集計データをクリアする。
+    # To clear the aggregate data.
     #
     def reset(now = nil)
         if now.nil?

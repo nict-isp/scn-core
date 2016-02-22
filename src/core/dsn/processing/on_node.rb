@@ -3,16 +3,16 @@ require_relative '../../utils'
 require_relative '../../utility/m2m_format'
 require_relative '../compile/communication_data'
 
-#= データ送信受信時の中間処理クラス
-# データに対する抽出処理を実施する
+#= Intermediate processing class at the time of data transmission and reception
+# To execute the extraction process to the data.
 #
 #@author NICT
 #
 class OnNodeProcessing
 
-    #@param [String] overlay_id オーバーレイID
-    #@param [Service] service 中間処理を行なうサービスの情報
-    #@param [Hash] request アプリケーション要求
+    #@param [String]  overlay_id  Overlay ID
+    #@param [Service] service     Information of service to perform the intermediate processing
+    #@param [Hash]    request     Application request
     #
     def initialize(service, request)
         @service = service
@@ -21,9 +21,9 @@ class OnNodeProcessing
         update_request(request)
     end
 
-    # アプリケーション要求に基づき中間処理を再生成する。
+    # To regenerate the intermediate processing on the basis of the application request.
     #
-    #@param [Hash] request アプリケーション要求
+    #@param [Hash] request  Application request
     #@return [void]
     #
     def update_request(request)
@@ -44,16 +44,16 @@ class OnNodeProcessing
         log_error("", $!)
     end
 
-    # 情報抽出を実行する。（破壊的な操作）
+    # To execute the information extraction. (Destructive operation)
     #
-    # データ名を指定されなかった情報を削除する。
-    # データ名の指定が一つもなかった場合は何もしない。
+    # To delete the information that has not been specified the data name.
+    # Does nothing if the specified data name was not even one.
     #
-    # M2Mデータの場合は、メタ情報のスキーマも合わせて変更する。
-    # M2Mデータの場合は、必須情報（緯度経度高度時間）は削除しない。
+    # In the case of M2M data, it is modified to suit also the schema of the meta-information.
+    # In the case of M2M data, required information (latitude, longitude, altitude, and time) do not want to delete.
     #
-    #@param [Hash] data 情報抽出対象のデータ
-    #@return [Hash] 情報抽出後のデータ
+    #@param [Hash] data  Data for the information extraction
+    #@return [Hash] Data after the information extraction
     #
     def execute(data)
         extracts = @selects.keys()

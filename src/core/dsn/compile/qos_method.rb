@@ -3,29 +3,26 @@ require_relative './base_method'
 
 module DSN
 
-    #= QoSMethodメソッドクラス
-    # DSN記述のQoSメソッドを解析する。
+    #= QoSMethod class
+    # To analyze the QoS method of DSN description.
     #
     #@author NICT
     #
     class QoSMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "qos"
 
-        # 空の場合の中間コード出力
         HASH_EMPTY = {}
 
-        #@return [Array] 空の場合の中間コード出力
+        #@return [Array] intermediate code output when empty
         attr_reader :hash_empty
 
-        # デフォルト優先度
-        # priority が指定できるとユーザが好き勝手に数値を設定すると考えられ、
-        # また、完全には優先度を保障できないため、DSN記述上では設定できないように
-        # しておく。
+        # Default priority
+        # If the priority can be specified it is considered that the user likes arbitrarily set a numeric value.
+        # Because it can not guarantee the priority completely, it is on the DSN description keep set up so that they can not be.
         PRIORITY_DEFAULT = 100
 
-        #@param [Integer] bandwidth バンド幅
-        #@param [Integer] priority 通信優先度
+        #@param [Integer] bandwidth  Bandwidth
+        #@param [Integer] priority   Communication priority
         #
         def initialize(bandwidth, priority)
             @bandwidth  = bandwidth
@@ -33,18 +30,17 @@ module DSN
             @hash_empty = HASH_EMPTY
         end
 
-        #qosメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the qos method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # qosメソッド構文を解析する。
+        # To analyze the qos method syntax.
         #
-        #@param [DSNText] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
         #
         def self.parse(text)
-            # フォーマットの定義
             format = [[TYPE_INTEGER]]
             args   = BaseMethod.parse(text, METHOD_NAME, format)
 
@@ -54,7 +50,7 @@ module DSN
             return QoSMethod.new(bandwidth, priority)
         end
 
-        #中間コードに変換する
+        # It is converted into an intermediate code.
         def to_hash()
 
             if @bandwidth.nil?() && @priority.nil?()

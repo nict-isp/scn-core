@@ -3,28 +3,28 @@ require_relative './condition'
 
 module DSN
 
-    #= rangeメソッドを中間コード化、および
-    #  中間コードをもとに条件判定をおこなう。
+    #= A range method to intermediate encoding. In addition, 
+    # the condition for determining based on the intermediate code.
     #
     #@author NICT
     #
     class RangeMethodCondition < Condition
         METHOD_NAME = "range"
 
-        #RangeMethodCondtionの対象文字列かどうかを判定する。
+        # Determines whether or not the target string of RangeMethodCondtion.
         #
-        #@param [DSNText] 検査対象文字列
-        #@return [Boolean] 対象ならtrue,そうでなければfalse
+        #@param [DSNText] expression  Inspected string
+        #@return [Boolean] True if target, false otherwise
         #
         def self.match?(expression)
             return BaseMethod::match?(expression,METHOD_NAME)
         end
 
-        #文字列からインスタンスを作成する。
+        # To create an instance from a string.
         #
-        #@param [DSNText] expression 変換対象の文字列
-        #@return [RangeMethodCondtion] SignCondtionのインスタンス
-        #@raise [DSNFormatError] メソッドの入力として不適切な場合
+        #@param [DSNText] expression  String to be converted
+        #@return [RangeMethodCondtion] Instance of RangeMethodCondition
+        #@raise [DSNFormatError] Inappropriate as an input method
         #
         def self.parse(expression)
             format = [[TYPE_DATANAME], [TYPE_INTEGER, TYPE_FLOAT, TYPE_TIME, TYPE_STRING], [TYPE_INTEGER, TYPE_FLOAT, TYPE_TIME, TYPE_STRING]]
@@ -38,10 +38,10 @@ module DSN
             min = args_data_array[0]
             max = args_data_array[1]
 
-            # min, maxの型が異なる場合はエラーとする
-            # ただし、整数と実数の違いは許容する
-            # 整数の場合は一旦実数へ変換
-            temp_min = min # 一旦退避
+            # If the type of the min and max is different it is determined that the error.
+            # However, integer and real number difference is allowed.
+            # In the case of integer once converted into a real number.
+            temp_min = min
             temp_max = max
             if min.is_a?(Integer)
                 min = min.to_f
@@ -50,17 +50,17 @@ module DSN
                 max = max.to_f
             end
 
-            # 文字列と実数の組み合わせをエラーとする
+            # The combination of strings and function determines that error.
             unless min.kind_of?(max.class)
-                min = temp_min # 表示用に書き戻す
+                min = temp_min
                 max = temp_max
                 msg = "min: #{min.class}, max: #{max.class}"
                 raise DSNFormatError.new(ErrorMessage::ERR_RANGE_TYPE, expression, msg)
             end
 
-            # min > maxとなっていた場合はエラーとする
+            # If min is greater than max, determines that the error.
             if min > max
-                min = temp_min # 表示用に書き戻す
+                min = temp_min
                 max = temp_max
                 msg = "min: #{min}, max: #{max}"
                 raise DSNFormatError.new(ErrorMessage::ERR_RANGE_BACK, expression, msg)
@@ -72,20 +72,18 @@ module DSN
 
         #指定された中間コードのデータが条件を満たしているか判定する。
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] 判定条件, 閾値
-        #@param [Hash<String>] 条件判定対象のデータ名をキーに、
-        #                      値として、条件判定対象の値を持つハッシュ
-        #@return [Boolean] 判定条件を満たしている場合は、true、
-        #                  満たしていない場合は、false
-        #                  整数と実数の比較は問題ないが、
-        #                  判定対象とデータの型が異なる場合は、false
+        #@param [String]        key     Data name of the target is determined conditions
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination target key,
+        #                               and with the value of the condition determination target value.
+        #@return [Boolean] If it meet the condition true, not meet the condition false
+        #                  If the type of determination target and the data are different, false
         #
         def self.ok?(key, values, data)
             sign, min, max = values
             variable = data[key]
 
-            # 整数と実数の比較を実施するため、実数に変換する
+            # For carrying out a comparison of integer and real numbers, to convert an integer to a real number.
             if min.is_a?(Integer)
                 min = min.to_f
             end
@@ -99,7 +97,6 @@ module DSN
             if variable.kind_of?(min.class)
                 case sign
                 when METHOD_NAME
-                    #閾値の範囲内かどうか判定する。
                     if min <= variable && variable < max
                         result = true
                     else
@@ -109,7 +106,6 @@ module DSN
                     raise ArgumentError, "invalid method(=#{sign})"
                 end
             else
-                # 期待値とデータの型が異なる場合はfalseを返す
                 result = false
             end
         end

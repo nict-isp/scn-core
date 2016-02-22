@@ -3,23 +3,23 @@ require_relative '../../utils'
 require_relative '../../utility/m2m_format'
 require_relative '../compile/conditions'
 
-#= 中間処理のベースクラス
+#= Base class of intermediate processing
 #
 #@author NICT
 #
 class Processing
     include DSN
 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #
     def initialize(conditions)
         @conditions = conditions
     end
 
-    # 中間処理を実行する
+    # To execute an intermediate processing.
     #
-    #@param [Hash] processing_data 中間処理対象のデータ
-    #@return 中間処理実行後のデータ（入力データと同じフォーマット）
+    #@param [Hash] processing_data  Intermediate processing data
+    #@return Data after the intermediate processing run (the same format as the input data)
     #
     def execute(processing_data)
         return processing_data
@@ -27,13 +27,14 @@ class Processing
 
     private
 
-    # 中間処理対象の値をEnumrableのメソッドにより取り出し、ブロック文による処理を実行する。
+    # The value of the intermediate processing target is taken out by the method of Enumrable,
+    # to perform the process by the block statement.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@param [Symbol] method_name Enumrableのメソッド名
-    #@yieldparam [Hash] value 取り出したデータ要素
-    #@yieldreturn [Object] Enumrableメソッドの戻り値
-    #@return [Hash] Enumrableメソッドによる処理後の中間処理データ
+    #@param [Hash]      processing_data  Intermediate processing data
+    #@param [Symbol]    method_name      Method name of Enumerable
+    #@yieldparam [Hash] value            Extracted data elements
+    #@yieldreturn [Object] Return value of the Enumerable  method
+    #@return [Hash]        Intermediate processing data after processing by Enumerable method
     #
     def processing_values(processing_data, method_name, &block)
         if M2MFormat.formatted?(processing_data)
@@ -44,13 +45,14 @@ class Processing
         return result
     end
 
-    # m2mデータに該当しないデータの値をEnumrableのメソッドにより取り出し、ブロック文による処理を実行する。
+    # The value of the data which does not correspond to M2M data taken out by the method of Enumrable,
+    # to execute the process by the block statement.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@param [Symbol] method_name Enumrableのメソッド名
-    #@yieldparam [Hash] value 取り出したデータ要素
-    #@yieldreturn [Object] Enumrableメソッドの戻り値
-    #@return [Hash] Enumrableメソッドによる処理後の中間処理データ
+    #@param [Hash]      processing_data  Intermediate processing data
+    #@param [Symbol]    method_name      Method name of Enumerable
+    #@yieldparam [Hash] value            Extracted data elements
+    #@yieldreturn [Object] Return value of the Enumerable  method
+    #@return [Hash]        Intermediate processing data after processing by Enumerable method
     #
     def processing_normal_values(processing_data, method_name)
         data = processing_data.method(method_name).call { |value|
@@ -59,18 +61,19 @@ class Processing
         return data
     end
 
-    # M2Mデータver1.02の値をEnumrableのメソッドにより取り出し、ブロック文による処理を実行する。
+    # The value of the M2M data ver1.02 removed by methods of Enumrable,
+    # to execute the process by the block statement.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@param [Symbol] method_name Enumrableのメソッド名
-    #@yieldparam [Hash] value 取り出したデータ要素
-    #@yieldreturn [Object] Enumrableメソッドの戻り値
-    #@return [Hash] Enumrableメソッドによる処理後の中間処理データ
+    #@param [Hash]      processing_data  Intermediate processing data
+    #@param [Symbol]    method_name      Method name of Enumerable
+    #@yieldparam [Hash] value            Extracted data elements
+    #@yieldreturn [Object] Return value of the Enumerable  method
+    #@return [Hash]        Intermediate processing data after processing by Enumerable method
     #
     def processing_m2m_values(processing_data, method_name)
         data = M2MFormat.clone_data(processing_data)
         values = M2MFormat.get_values(data).method(method_name).call { |value|
-            # EventWarehouse対応。必須データを格納する
+            # Support for Event Warehouse. To store the required data.
             value["latitude"]  ||= nil
             value["longitude"] ||= nil
             value["altitude"]  ||= nil
@@ -81,13 +84,13 @@ class Processing
         return data
     end
 
-    # 中間処理で扱う共通のフォーマット
+    # A common format to be handled in the intermediate processing.
     #
-    #@param [Numeric] start 開始値
-    #@param [Numeric] ende 終了値
-    #@param [Numeric] interval データ間隔
-    #@param [String] label データ名
-    #@return [Hash] 整形済みの情報
+    #@param [Numeric] start     Start value
+    #@param [Numeric] ende      End value
+    #@param [Numeric] interval  Data interval
+    #@param [String]  label     Data name
+    #@return [Hash] Preformatted of information
     #
     def to_info(start, ende, interval, label)
         return {
@@ -100,7 +103,7 @@ class Processing
 end
 
 #@private
-#= 時空間処理モジュール
+#= Space-time processing module
 #
 #@author NICT
 #
@@ -108,39 +111,40 @@ module TimeSpaceProcessing
 
     private
 
-    # 集計先のインデックスを算出する
+    # To calculate the index of aggregate destination.
     #
-    #@param [Hash] info 集計用の定義情報（データ名、開始値、終了値、インターバル）
-    #@param [Hash] data センサーデータ
-    #@return [Integer] 集計先のインデックス
-    #@return [Nil] 集計範囲を超える場合
+    #@param [Hash] info  Definition information for aggregate (data name, start value, end value, interval)
+    #@param [Hash] data  Sensor data
+    #@return [Integer] Index of aggregate destination
+    #@return [Nil]     It exceeds the aggregate range
     #
     def get_index(info, data)
         value = data[info["label"]]
         start = info["start"]
         ende  = info["end"]
-        value = yield(value) if block_given?    # 計算可能な数値に変換
+        value = yield(value) if block_given?    # Converted to computable numbers.
         return (start <= value && value < ende) ? ((value - start) / info["interval"]).to_i : nil
     end
 
-    # 集計先のインデックスより、該当する集計範囲を算出する
+    # From the aggregation destination of the index, to calculate the aggregate range applicable.
     #
-    #@param [Integer] 集計先のインデックス
-    #@retrun [Object, Object] 開始値、終了値
+    #@param [Hash]    info   Definition information for aggregate (data name, start value, end value, interval)
+    #@param [Integer] value  Index of aggregate destination
+    #@retrun [Object, Object] Start value, End value
     #
     def get_start_end(info, value)
         interval = info["interval"]
         start = value * interval + info["start"]
-        ende  = [start + interval, info["end"]].min # 集計範囲を超えないように
-        start = yield(start) if block_given?    # 元データのフォーマットに変換
-        ende  = yield(ende)  if block_given?    # 元データのフォーマットに変換
+        ende  = [start + interval, info["end"]].min # So as not to exceed an aggregate range.
+        start = yield(start) if block_given?        # It is converted to the format of the original data.
+        ende  = yield(ende)  if block_given?        # It is converted to the format of the original data.
         return start, ende
     end
 
-    # 時刻情報を中間処理で扱う形にして取得する。
+    # To get the time information into a form that handled by intermediate processing.
     #
-    #@param [Hash] time 時刻情報のハッシュ
-    #@return [Hash] 整形済みの時刻情報
+    #@param [Hash] time  Hash of the time information
+    #@return [Hash] Preformatted time information
     #
     def get_time_info(time)
         if time.kind_of?(Hash)
@@ -172,10 +176,10 @@ module TimeSpaceProcessing
         return nil
     end
 
-    # 空間情報を中間処理で扱う形にして取得する。
+    # To get in the form of dealing with spatial information at intermediate processing.
     #
-    #@param [Hash] time 空間情報のハッシュ
-    #@return [Hash, Hash] 整形済みの緯度、経度情報
+    #@param [Hash] time  Hash of spatial information
+    #@return [Hash, Hash] Preformatted of latitude information and longitude information
     #
     def get_space_info(space)
         if space.kind_of?(Hash)

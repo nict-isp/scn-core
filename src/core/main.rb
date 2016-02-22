@@ -3,9 +3,9 @@ require_relative './utils'
 require_relative './utility/lock_process'
 require_relative './manager'
 
-# プログラムのエントリポイント
-# 起動方法:
-# $ ruby main.rb <em>自ノードのIPアドレス/サブネットマスク</em>
+# Entry point of the program
+# How to Start:
+# $ ruby main.rb <em>IP address of the local node/subnet mask</em>
 #
 #@author NICT
 #
@@ -17,15 +17,15 @@ else
     my_ipaddress = ARGV[0]
 
     log_trace
-    # IPアドレスをチェックする。
+    # To check the IP address.
     if set_ipaddress_ok?(my_ipaddress)
         array = my_ipaddress.split("/")
 
-        # SCNミドルウェアの多重起動を防止する。
+        # To prevent multiple start-up of SCN middleware.
         lock_process = LockProcess.new()
         if lock_process.lock()
             if ARGV.count == 2
-                default_id = ARGV[1] # この引数は、テスト時のみ使用する。
+                default_id = ARGV[1] # This argument is used only at the time of the test.
             else
                 default_id = nil
             end
@@ -34,7 +34,7 @@ else
             manager.start()
 
             ########################################
-            # stop するまで、ここでブロックされる。#
+            # Until it stops, it is here blocked.  #
             ########################################
             lock_process.unlock()
 

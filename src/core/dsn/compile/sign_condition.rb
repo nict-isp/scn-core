@@ -4,17 +4,17 @@ require_relative './dsn_define'
 
 module DSN
 
-    #= 不等号の処理を中間コード化、および
-    #  中間コードをもとに条件判定をおこなう。
+    #= Processing of inequality to intermediate encoding. In addition, 
+    # the condition for determining based on the intermediate code.
     #
     #@author NICT
     #
     class SignCondition < Condition
 
-        #SignCondtionの対象文字列かどうかを判定する。
+        # Determines whether or not the target string of SignCondition.
         #
-        #@param [DSNText] 検査対象文字列 
-        #@return [Boolean] 対象ならtrue,そうでなければfalse
+        #@param [DSNText] expression  Inspected string
+        #@return [Boolean] True if target, false otherwise
         #
         def self.match?(expression)
             if expression.single_line =~ /(?<name>\w+)\s*(?<sign>#{REG_SIGN})\s*(?<threshold>.+)/
@@ -23,39 +23,39 @@ module DSN
             return false
         end
 
-        #文字列からインスタンスを作成する。
+        # To create an instance from a string.
         #
-        #@param [DSNText] expression 変換対象の文字列
-        #@return [SignCondtion] SignCondtionのインスタンス
+        #@param [DSNText] expression  String to be converted
+        #@return [SignCondtion] Instance of SignCondtion
         #
         def self.parse(expression)
-            #match処理で分解する。
             reg = /(?<name>\w+)\s*(?<sign>#{REG_SIGN})\s*(?<threshold>.+)/.match(expression.single_line)
 
-            # 左辺(name部)がデータ名の型であることを確認する
+            # The left-hand side (name part) to confirm that it is a type of data name.
             dataname = BaseMethod.dataname_check(reg[:name])
 
-            # 右辺(threshold部)の型を確認する
+            # To verify the type of the right-hand side (threshold part).
             conved_type = BaseMethod.convtype(reg[:threshold])
 
-            # 不等号部分を文字列型にする
+            # The inequality part to a string type.
             sign = reg[:sign].to_s
 
             return SignCondition.new(dataname, sign, [conved_type])
         end
 
-        #指定された中間コードのデータが条件を満たしているか判定する。
+        # It determines whether the data of the specified intermediate code meets the conditions.
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] values 判定条件, 閾値
-        #@param [Hash<String>] data 条件判定対象のデータ名をキーに、値として、条>    件判定対象の値を持つハッシュ
-        #@return [Boolean] 判定条件を満たしている場合は、true、満たしていない場合は、false
+        #@param [String]        key     Data name of the target is determined conditions
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination target key,
+        #                               and with the value of the condition determination target value.
+        #@return [Boolean] If it meet the condition true, not meet the condition false
         #
         def self.ok?(key, values, data)
             sign, threshold = values
             variable = data[key]
 
-            # 値が整数か実数の場合は、比較のため実数に変換する
+            # If the value is integer or real number, to convert to a real number for comparison.
             if variable.is_a?(Integer)
                 variable = variable.to_f
             end
@@ -86,5 +86,4 @@ module DSN
             return result
         end
     end
-
 end

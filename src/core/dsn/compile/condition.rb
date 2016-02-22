@@ -3,57 +3,57 @@ require_relative './error_message'
 
 module DSN
 
-    #= 条件判定についての中間コード化および結果判定をおこなうクラス。
+    #= Classes for intermediate encoding and result determination for the condition determination
     #
     #@author NICT
     #
     class Condition
 
-        #@return [String] name データ名
+        #@return [String] data_name  Data name
         attr_reader :data_name
-        #@return [String] sign 符号
+        #@return [String] sign       Sign
         attr_reader :sign
-        #@return [String] threshold 閾値
+        #@return [String] threshold  Threshold
         attr_reader :threshold
 
-        #@param [String] data_name:データ名 
-        #@param [String] sign :判定条件
-        #@param [Array<String>] threshold:閾値 #
+        #@param [String]        data_name  Data name
+        #@param [String]        sign       Sign
+        #@param [Array<String>] threshold  Threshold
         def initialize(name, sign, threshold)
             @data_name = name
             @sign = sign
             @threshold = threshold
         end
 
-        #中間コードに変換する。
+        # It is converted into an intermediate code.
         #
-        #@param [String] expression 中間コードに変換する対象の文字列
-        #@param [String] num 行数
+        #@param [String] expression  String of the target to be converted to an intermediate code
+        #@param [String] num         Number of lines
         #
         def self.parse(expression, num)
-            #直接呼び出さない
+            # Not be called directly.
             raise RuntimeError.new(ErrorMessage::ERR_INTERFACE)
         end
 
-        #中間コードを返却する。
+        # To return the intermediate code.
         #
-        #@return [Hash<String,Array<String>>] 中間コード
+        #@return [Hash<String,Array<String>>] Intermediate code
         #
         def to_hash()
             return {@data_name=> [@sign].concat(@threshold)}
         end
 
-        #指定したデータが条件を満たしているかどうかを判定する。
+        # It determines whether or not the specified data meets the conditions.
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] 判定条件, 閾値
-        #@param [Hash<String>] 条件判定対象のデータ名をキーに、値として、条件判定対象の値を持つハッシュ。 
-        #@return [Boolean] 判定条件を満たしている場合は、true,満たしていない場合はfalse
+        #@param [String]        key     Data name of the target is determined conditions
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination target key,
+        #                               and with the value of the condition determination target value.
+        #@return [Boolean] If it meet the condition true, not meet the condition false
         #
         def self.ok?(key, values, data)
-            #直接呼び出さない
+            # Not be called directly.
             raise RuntimeError.new(ErrorMessage::ERR_INTERFACE)
         end
     end
-
 end

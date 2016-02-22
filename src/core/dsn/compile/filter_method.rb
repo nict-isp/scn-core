@@ -4,42 +4,41 @@ require_relative './conditions'
 
 module DSN
 
-    #= FilterMethodメソッドクラス
-    # DSN記述のfilterメソッドを解析する。
+    #= FilterMethod class
+    # To analyze the filter method of DSN description.
     #
     #@author NICT
     #
     class FilterMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "filter"
 
-        #@return [Conditions] メソッド内で設定されている条件
+        #@return [Conditions] Conditions that are set in the method
         attr_reader :conditions
 
-        #@param [DSNText] conditions フィルタ条件を示す文字列
+        #@param [DSNText] conditions  String of filter condition
         #
         def initialize(conditions)
             @conditions = Conditions.parse(conditions)
         end
 
-        #フィルタメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the filter method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # filterメソッド構文を解析する。
+        # To analyze the filter method syntax.
         #
-        #@param [DSNText] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
         #
         def self.parse(text)
-            # フォーマットの定義
             format = [[TYPE_ANY]]
-            args = BaseMethod.parse(text, METHOD_NAME, format)
+            args   = BaseMethod.parse(text, METHOD_NAME, format)
+
             return FilterMethod.new(args[0])
         end
 
-        #中間コードに変換する
+        # It is converted into an intermediate code.
         def to_hash()
             return { KEY_FILTER => @conditions.to_hash }
         end

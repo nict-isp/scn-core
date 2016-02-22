@@ -1,43 +1,42 @@
 #-*- coding: utf-8 -*-
 require_relative './processing'
 
-
-#= マージ処理クラス（インナーサービス向け）
+#= Merge processing class (for inner service)
 #
 #@author NICT
 #
 class Merge < Processing
     
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #
     def initialize(conditions = {})
         super
 
         reset()
-        reset() # 2回呼出でold_cahceまで生成
+        reset() # To generate up to old_cache twice call.
     end
 
-    # 中間処理要求を更新する。 
+    # To update the intermediate processing request. 
     # 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions Intermediate processing request
     #@return [void]
     #
     def update(conditions)
         @conditions = conditions
     end
 
-    # マージ処理を実施する
-    # 時空間をキーとして、複数のデータソースからのデータをマージする。
-    # キーによるマージのため、データを必ず1動作周期以上保持する。
+    # To execute the merge process.
+    # As a key space time, merging data from multiple data sources.
+    # For the merge by key, hold data always 1 operation cycle or more.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@retrun [Array] 空データ（いったん保持するため）
+    #@param [Hash] processing_data  Intermediate processing data
+    #@retrun [Array] Empty data (for once retained)
     #
     def execute(processing_data)
         processing_values(processing_data, :each) { |value|
             key = get_key(value)
 
-            # 保持中のデータにマッチするかを確認
+            # To make sure it matches the data in the hold.
             if @old_cache.has_key?(key)
                 @old_cache[key].merge!(value)
             else
@@ -47,9 +46,9 @@ class Merge < Processing
         return []
     end
 
-    # 時空間で整列したマージ結果を取得する。
+    # To get the result merge aligned in space-time.
     #
-    #@return [Array<Hash>] 時空間で整列したデータ
+    #@return [Array<Hash>] Data that are aligned in space-time
     #
     def get_result()
         log_trace()
@@ -60,7 +59,7 @@ class Merge < Processing
 
     private
 
-    # ハッシュ、ソートに用いる時空間のキーを生成する
+    # To generate a key space-time to be used in the hash and sort.
     #
     def get_key(value)
         return [[value["time"]], [value["latitude"]], [value["longitude"]]]

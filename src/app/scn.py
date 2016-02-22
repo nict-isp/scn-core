@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ scn.py
- @brief  SCNミドルウェアPython用API
- @author (SEC) M.Toyoda
+ @brief  SCN middleware API for Python
+ @author NICT
 """
 import sys
 import msgpackrpc
@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO,
 _scnms = []
 
 def leave_scn(num, frame):
-    """終了時SCN離脱処理
+    """At the end of SCN middleware leave processing
     """
     for scnm in _scnms:
         scnm.finalize()
@@ -32,7 +32,7 @@ signal.signal(signal.SIGTERM, leave_scn)
 signal.signal(signal.SIGINT,  leave_scn)
 
 class SCNManager:
-    """SCNManagerクラス
+    """SCNManager class
     """
 
     RPC_IP_ADDRESS         = "127.0.0.1"
@@ -41,34 +41,34 @@ class SCNManager:
     RPC_CLIENT_TIMEOUT     = 40
 
     def __init__(self, callback=None):
-        """コンストラクタ
-        _callback    -- [func] データ受信用コールバック関数
+        """constructor
+        _callback    -- [func] callback function for data reception
         """
 
         self._service_id = None
         self._client     = None
         self._piax       = PIAXAccessor()
 
-        # SCNミドルウェアとの接続ポートを取得する。
+        # To get a connection port of the SCN middleware.
         addr = msgpackrpc.Address(self.RPC_INITIAL_IP_ADDRESS, self.RPC_INITIAL_TX_PORT)
         client = msgpackrpc.Client(addr, timeout = self.RPC_CLIENT_TIMEOUT)
 
         try:
             self.rpc_tx_port, self.rpc_rx_port = client.call('connect_app')
 
-            # API用のRPCクライアントを作成する。
+            # To create an RPC client for API.
             addr = msgpackrpc.Address(self.RPC_IP_ADDRESS, self.rpc_tx_port)
             self._client = msgpackrpc.Client(addr, timeout = self.RPC_CLIENT_TIMEOUT)
             #self._client = msgpackrpc.Client(addr, timeout = self.RPC_CLIENT_TIMEOUT, builder=tcp)
 
-            # API用のRPCサーバを作成する。
+            # To create an RPC server for the API.
             self.publisher = Publisher()
             self.publisher.add_data_listener(callback)
             self.server    = msgpackrpc.Server(self.publisher)
             #self.server    = msgpackrpc.Server(self.publisher, builder=tcp)
             self.server.listen(msgpackrpc.Address("0.0.0.0", self.rpc_rx_port))
 
-            # スレッドを開始する。
+            # To start a thread.
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
 
@@ -87,7 +87,7 @@ class SCNManager:
 
 
     def _run(self):
-        """RPC受信スレッド開始メソッド
+        """RPC reception thread start method
         """
         logging.debug("RPC receive server start. (RPC RX port = %s)", str(self.rpc_rx_port))
         logging.debug("RPC TX port = %s", str(self.rpc_tx_port))
@@ -107,9 +107,9 @@ class SCNManager:
 
 
     def join_service(self, service_name, service_info):
-        """サービス参加API
-        service_name -- [str] サービス名
-        service_info -- [dict] サービスの情報
+        """API for the service to join
+        service_name -- [str]  Service name
+        service_info -- [dict] Service informaion
         """
         try:
             self._service_id = self._client.call('join_service', service_name, service_info, self.rpc_rx_port)
@@ -128,9 +128,9 @@ class SCNManager:
 
 
     def update_service(self, service_info):
-        """サービス情報変更API
-        service_id    -- [str] サービスID
-        service_info  -- [dict] サービスの情報
+        """API for the service information to change
+        service_id    -- [str]  Service ID
+        service_info  -- [dict] Service information
         """
         self._check_join()
 
@@ -151,8 +151,8 @@ class SCNManager:
 
 
     def discovery_service(self, query):
-        """サービス検索API
-        query -- [dict] サービスの検索条件
+        """API for the service to search
+        query -- [dict] Search conditions of service
         """
         try:
             result = self._client.call('discovery_service', query)
@@ -173,8 +173,8 @@ class SCNManager:
 
 
     def leave_service(self):
-        """サービス離脱API
-        service_id -- [str] サービスID
+        """API for the service to leave
+        service_id -- [str] Service ID
         """
         self._check_join()
 
@@ -195,10 +195,10 @@ class SCNManager:
 
 
     def send_data(self, data, channel_id=None, sync=False):
-        """データ送信API
-        data            -- [str/dict] 送信データ
-        channel_id -- [str]      チャネルID
-        sync            -- [boolean]  Trueの時、送信の完了を待ち合せる
+        """API for sending data
+        data       -- [str/dict] Transmission data
+        channel_id -- [str]      Channel ID
+        sync       -- [boolean]  When True, the wait for the completion of the transmission
         """
         self._check_join()
         data_size = self._calc_size(data)
@@ -223,8 +223,8 @@ class SCNManager:
 
 
     def create_dsn(self, table_name, event_data_model):
-        """DSN記述生成API
-        table_name -- [str] テーブル名
+        """API for the DSN description to generate
+        table_name       -- [str]  Table name
         event_data_model -- [dict] Event Data Model
         """
         try:
@@ -244,10 +244,10 @@ class SCNManager:
 
 
     def create_overlay(self, overlay_name, dsn_spec, callback=None):
-        """オーバレイ生成API
-        overlay_name -- [str]  オーバレイ名
-        dsn_spec     -- [str]  DSN記述
-        callback     -- [func] メッセージ受信用コールバック
+        """API for the overlay to generate
+        overlay_name -- [str]  Overlay name
+        dsn_spec     -- [str]  DSN description
+        callback     -- [func] Call back for Message reception
         """
         try:
             overlay_id = self._client.call('create_overlay', overlay_name, dsn_spec, self.rpc_rx_port)
@@ -268,8 +268,8 @@ class SCNManager:
             raise
 
     def delete_overlay(self, overlay_id):
-        """オーバレイ削除API
-        overlay_id -- [str]  オーバレイID
+        """API for the overlay to delete
+        overlay_id -- [str]  Overlay ID
         """
         try:
             self._client.call('delete_overlay', overlay_id)
@@ -289,8 +289,8 @@ class SCNManager:
 
 
     def get_channel(self, channel_id):
-        """チャネル取得API
-        channel_id -- [str]  チャネルID
+        """API for get the channel
+        channel_id -- [str]  Channel ID
         """
         try:
             result = self._client.call('get_channel', channel_id)
@@ -303,18 +303,18 @@ class SCNManager:
 
 
     def get_piax_data(self, values = [], method = "rect", params = [122.56, 20.25, 31.04, 25.09]):
-        """ PIAX基盤データ取得API
-        values -- [list<str>] 取得するデータパス
-        method -- [str]       検索に使用するメソッド名
-        params -- [list]      検索時のパラメータ
+        """API for get the PIAX data
+        values -- [list<str>] Data path to get
+        method -- [str]       The name of the method used to search
+        params -- [list]      Parameters of at the search time
         """
         return self._piax.get_data(values, method, params)
 
 
     def get_piax_sensors(self, method = "rect", params = [122.56, 20.25, 31.04, 25.09]):
-        """ PIAX基盤センサー取得API
-        method -- [str]       検索に使用するメソッド名
-        params -- [list]      検索時のパラメータ
+        """API for get the PIAX sensor
+        method -- [str]       The name of the method used to search
+        params -- [list]      Parameters of at the search time
         """
         return self._piax.get_sensors(method, params)
 
@@ -325,7 +325,7 @@ class SCNManager:
 
 
     def _calc_size(self, o):
-        """データサイズ計算処理
+        """Data size calculation processing
         """
         if isinstance(o, dict):
             size = 2    #{}
@@ -358,36 +358,36 @@ class SCNManager:
 
 
 class Publisher(object):
-    """イベントハンドラクラス
+    """Event handler class
     """
     def __init__(self):
         self._data_callback = None
         self._overlay_callback = {}
 
     def add_data_listener(self, callback):
-        """ データ受信用コールバック設定メソッド
-        callback -- [func] データ受信時のコールバック
+        """Method to set the callback for data reception
+        callback -- [func] Call back at the time of data reception
         """
         self._data_callback = callback
 
     def add_overlay_listener(self, overlay_id, callback):
-        """ メッセージ受信用コールバック設定メソッド
-        overlay_id -- [str]  データを受信するオーバレイID
-        callback   -- [func] データ受信時のコールバック
+        """Method to set the callback for message reception
+        overlay_id -- [str]  Overlay ID to receive data
+        callback   -- [func] Call back at the time of data reception
         """
         self._overlay_callback[overlay_id] = callback
 
     def remove_overlay_listener(self, overlay_id):
-        """ メッセージ受信用コールバック削除メソッド
-        overlay_id -- [str]  データを受信するオーバレイID
+        """Method to remove the callback for message reception
+        overlay_id -- [str]  Overlay ID to receive data
         """
         self._overlay_callback.pop(overlay_id, None)
 
     def receive_data(self, data, data_size, channel_id):
-        """データ受信用コールバックメソッド
-        data -- [str/dict]       受信データ
-        data_size -- [int]       受信データサイズ
-        channel_id -- [str] チャネルID
+        """Callback method for receiving data
+        data       -- [str/dict]  Received data
+        data_size  -- [int]       Received data size
+        channel_id -- [str]       Channel ID
         """
         logging.debug("Publisher::receive_data() is called.")
         logging.debug("data(%d bytes) has been received. (channel ID = %s)", data_size, channel_id)
@@ -400,9 +400,9 @@ class Publisher(object):
         gc.collect()
 
     def receive_message(self, overlay_id, message):
-        """メッセージ受信コールバックメソッド
-        message    -- [str] 受信メッセージ
-        overlay_id -- [str] オーバーレイID
+        """Call back setting method for data receiving
+        message    -- [str] Received message
+        overlay_id -- [str] Overlay ID
         """
         logging.debug("Publisher::receive_message() is called.")
         logging.debug("message has been received. (overlay id = %s, message = %s)", overlay_id, message)
@@ -418,7 +418,7 @@ class Publisher(object):
 import urllib, urllib2
 
 class PIAXAccessor:
-    """ PIAX基盤へのアクセスクラス
+    """Access class to PIAX
     """
     PIAX_URL_BASE           = "192.168.240.12:8090"
     PIAX_URL_DATA_FORMAT    = "http://{0}/sensors/discquery/{1}/values/{2}"
@@ -430,13 +430,13 @@ class PIAXAccessor:
     HEADER_ACCEPT = "application/json"
 
     def get_data(self, values = [], method = "rect", params = [122.56, 20.25, 31.04, 25.09]):
-        """ GETメソッドを実行する
-        values -- [list<str>] 取得するデータパス
-        method -- [str]       検索に使用するメソッド名
-        params -- [list]      検索時のパラメータ
+        """Perform the GET method
+        values -- [list<str>] Data path to get
+        method -- [str]       The name of the method used to search
+        params -- [list]      Parameters of at the search time
         """
         where = urllib.quote(self.QUERY_FORAT.format(method, ",".join([str(param) for param in params])))
-        # valuesの"/"がquote非対応のため、個別に置換
+        # For the "/" is values of quote non-compliant, to replace individually.
         quoted_values = [urllib.quote(value).replace('/', '%2F') for value in values]
         quoted_values.extend(self.SELECT_COMMON)
         select = ",".join(list(set(quoted_values)))
@@ -460,9 +460,9 @@ class PIAXAccessor:
             raise
 
     def get_sensors(self, values = [], method = "rect", params = [122.56, 20.25, 31.04, 25.09]):
-        """ GETメソッドを実行する
-        method -- [str]       検索に使用するメソッド名
-        params -- [list]      検索時のパラメータ
+        """Perform the GET method
+        method -- [str]       The name of the method used to search
+        params -- [list]      Parameters of at the search time
         """
         where = urllib.quote(self.QUERY_FORAT.format(method, ",".join([str(param) for param in params])))
         url = self.PIAX_URL_SENSORS_FORMAT.format(self.PIAX_URL_BASE, where)

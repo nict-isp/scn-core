@@ -2,13 +2,13 @@
 require_relative './processing'
 require_relative './merge'
 
-#= 仮想プロパティ処理クラス
+#= Virtual property processing class
 #
 #@author NICT
 #
 class Virtual < Processing
     
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #
     def initialize(conditions = {})
         super
@@ -16,9 +16,9 @@ class Virtual < Processing
         update(conditions)
     end
 
-    # 中間処理要求を更新する。 
+    # To update the intermediate processing request. 
     # 
-    #@param [Hash] conditions 中間処理要求
+    #@param [Hash] conditions  Intermediate processing request
     #@return [void]
     #
     def update(conditions)
@@ -29,14 +29,14 @@ class Virtual < Processing
     end
 
     def execute(processing_data)
-        # エラーになった値を弾くためにeachを使用
-        # 弾かない場合はmapで良い
+        # The use of each in order to exclude the value which resulted in an error.
+        # If it dows not want to exclude it may be a province.
         result = []
         processing_values(processing_data, :each) { |_value_|
             begin
                 log_debug {"#{_value_}"}
-                # evalメソッドを使用する仮実装
-                #TODO evalは危険＆パフォーマンスが悪いので置き換える
+                # Provisional implementation that uses the eval method.
+                #TODO Replace because eval is dangerous and bad performance.
                 _virtual_ = nil
                 _exp_     = ""
                 _value_.each do |k, v|

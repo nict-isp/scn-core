@@ -1,3 +1,7 @@
+""" tcp.py
+ @brief  TCP class
+ @author NICT
+"""
 from msgpackrpc.transport import tcp
 from tornado.iostream import IOStream
 

@@ -3,27 +3,27 @@ require_relative './condition'
 
 module DSN
 
-    #= likeメソッドを中間コード化、および
-    #  中間コードをもとに条件判定をおこなう。
+    #= A like method to intermediate encoding. In addition, 
+    # the condition for determining based on the intermediate code.
     #
     #@author NICT
     #
     class LikeMethodCondition < Condition
         METHOD_NAME = "like"
 
-        #LikeMethodCondtionの対象文字列かどうかを判定する。
+        # Determines whether or not the target string of LikeMethodCondtion.
         #
-        #@param [DSNText] 検査対象文字列 
-        #@return [Boolean] 対象ならtrue,そうでなければfalse
+        #@param [DSNText] expression  Inspected string
+        #@return [Boolean] True if target, false otherwise
         #
         def self.match?(expression)
             return BaseMethod::match?(expression,METHOD_NAME)
         end
 
-        #文字列からインスタンスを作成する。
+        # To create an instance from a string.
         #
-        #@param [DSNText] expression 変換対象の文字列
-        #@return [LikeMethodCondtion] SignCondtionのインスタンス
+        #@param [DSNText] expression  String to be converted
+        #@return [LikeMethodCondtion] Instance of LikeMethodCondtion
         #
         def self.parse(expression)
             format = [[TYPE_DATANAME], [TYPE_STRING]]
@@ -34,12 +34,13 @@ module DSN
             return LikeMethodCondition.new(data_name_string,METHOD_NAME, [regex_string])
         end
 
-        #指定された中間コードのデータが条件を満たしているか判定する。
+        # It determines whether the data of the specified intermediate code meets the conditions.
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] 判定条件, 閾値
-        #@param [Hash<String>] 条件判定対象のデータ名をキーに、値として、条件判定対象の値を持つハッシュ 
-        #@return [Boolean] 判定条件を満たしている場合は、true、満たしていない場合は、false
+        #@param [String]        key     Data name of the target is determined conditions
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination target key,
+        #                               and with the value of the condition determination target value.
+        #@return [Boolean] If it meet the condition true, not meet the condition false
         #
         def self.ok?(key, values, data)
             sign, threshold = values
@@ -56,5 +57,4 @@ module DSN
             return result
         end
     end
-
 end

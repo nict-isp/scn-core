@@ -3,13 +3,12 @@ require_relative './base_method'
 
 module DSN
 
-    #= VirtualMethodメソッドクラス
-    # DSN記述のvirtualメソッドを解析する。
+    #= VirtualMethod class
+    # To analyze the virtual method of DSN description.
     #
     #@author NICT
     #
     class VirtualMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "virtual"
 
         def initialize(virtual, expr)
@@ -17,16 +16,16 @@ module DSN
             @expr    = expr
         end
 
-        #マージメソッドに対応した文字列か判定する。
+        # It determines whether the character string corresponding to the virtual method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # virtualメソッド構文を解析する。
+        # To analyze the virtual method syntax.
         #
-        #@param [DSNtext] text メソッドの文字列
-        #@return [Array<String>] メソッドの引数の配列
-        #@raise [DSNFormatError] メソッドとして,正しい形式でない場合
+        #@param [DSNText] text  String of method
+        #@return [Array<String>] Array of arguments of the method
+        #@raise [DSNFormatError] Not in the correct format as a method
         #
         def self.parse(text)
             format  = [[TYPE_DATANAME], [TYPE_STRING]]
@@ -37,7 +36,6 @@ module DSN
             return VirtualMethod.new(virtual, expr)
         end
 
-        #中間コードに変換する。
         def to_hash()
             return {
                 KEY_VIRTUAL => {

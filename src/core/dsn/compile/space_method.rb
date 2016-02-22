@@ -3,16 +3,15 @@ require_relative './base_method'
 
 module DSN
 
-    #= SpaceMethodメソッドクラス
-    # DSN記述のspaceメソッドを解析する。
+    #= SpaceMethod class
+    # To analyze the DSN description space method.
     #
     #@author NICT
     #
     class SpaceMethod < BaseMethod
-        # メソッド名
         METHOD_NAME = "space"
 
-        #メソッドの引数順番
+        # Order of the arguments of the method
         POS_LAT_DATA_NAME = 0
         POS_LONG_DATA_NAME = 1
         POS_WEST = 2
@@ -33,31 +32,27 @@ module DSN
             @long_interval = args_data[POS_LONG_INTERVAL]
         end
 
-        #メソッドに対応した文字列か判定する。
-        #
-        #@return 対応していればtrue
-        #
+        # It determines whether the character string corresponding to the space method.
         def self.match?(text)
             return BaseMethod::match?(text,METHOD_NAME)
         end
 
-        # spaceメソッド構文を解析する。
+        # To analyze the space method syntax.
         #
-        #@param [DSNtext] text メソッドの文字列
-        #@return [Array<Integer|Float|String>] メソッドの引数の配列
-        #@raise [ArgumentError] メソッドとして,正しい形式でない場合
+        #@param [DSNText] text  String of method
+        #@return [Array<Integer|Float|String>] Array of arguments of the method
+        #@raise [ArgumentError] Not in the correct format as a method
         #
         def self.parse(text)
-            # フォーマットの定義
             format = [[TYPE_DATANAME],[TYPE_DATANAME],[TYPE_INTEGER, TYPE_FLOAT],[TYPE_INTEGER, TYPE_FLOAT],[TYPE_INTEGER, TYPE_FLOAT],[TYPE_INTEGER, TYPE_FLOAT],[TYPE_INTEGER, TYPE_FLOAT],[TYPE_INTEGER, TYPE_FLOAT]]
 
             args = BaseMethod.parse(text, METHOD_NAME, format)
 
-            # パラメタ取り出し
+            # Take out the parameters.
             args_string = args.map{|arg| arg.single_line}
 
-            # 経度が-180.0 ～ 180.0以外の場合はエラー
-            # 緯度が-90.0 ～ 90.0以外の場合はエラー
+            # Longitude error if from -180.0 other than 180.0.
+            # Latitude error if from -90.0 other than 90.0.
             longitude_min = -180.0
             longitude_max = 180.0
             latitude_min = -90.0
@@ -75,22 +70,18 @@ module DSN
 
             end
 
-            # west > east, south > northの場合はエラー
+            # Error in the case of west> east and south> north.
             longitude_diff = west - east
             latitude_diff = south - north
             if longitude_diff > 0 || latitude_diff > 0
                 msg = "(west, south, east, north) = (#{west}, #{south}, #{east}, #{north})"
                 raise DSNFormatError.new(ErrorMessage::ERR_SPACE_BACK, text, msg)
-
             end
 
             return SpaceMethod.new(args_string)
         end
 
-        #中間コードに変換する
-        #
-        #@return [Hash<String,String>] 中間コード
-        #
+        # It is converted into an intermediate code.
         def to_hash()
             return {KEY_SPACE => {
                 KEY_LAT_DATA_NAME => @lat_data_name,
@@ -104,5 +95,4 @@ module DSN
                 }}
         end
     end
-
 end

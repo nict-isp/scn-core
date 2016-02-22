@@ -3,16 +3,16 @@
 ########
 # main #
 ########
-# RPC初期受信用ポート
+# Initial reception port for RPC
 @rpc_initial_rx_port = 10000
 
-# RPC受信用ポート
+# Port for RPC reception
 @rpc_rx_port = 21001
 
-# RPC送信用基底ポート
+# Base port for RPC transmission
 @rpc_tx_port_base = 22000
 
-# RPC送信IPアドレス
+# IP address for RPC transmission
 @rpc_ip_address = "127.0.0.1"
 
 ##########
@@ -44,66 +44,66 @@ $trace             = false
 # EventCollector ##
 ###################
 @hostname = `hostname`.strip
-# true でVisualizer（Redis）にイベントを通知
+# When true, to notify the event to the Visualizer (Redis)
 @event_collecting  = true
 
-# true でログファイルにイベントを記録
+# When true, to record the event in the log file
 @event_logging     = true
 @event_logging_dir = ENV['HOME'] + "/log/redis_#{@hostname}"
 
-# fluend設定
+# Setting of fluentd
 @fluent_port       = 24224
 @fluent_ip_address = "172.18.102.1"
 
 ##################
 # DSNExecutor #
 ##################
-# DSN自動実行の動作周期[s]
+# The operation period of the DSN automatic execution[s]
 @dsn_auto_execute_interval = 60
-# DSNイベント監視の動作周期[s]
+# The operation period of the DNS event monitoring[s]
 @dsn_observe_interval = 5
 
-# 自動実行されるDSNファイルの格納ディレクトリ
+# Storage directory of the DSN file that is automatically executed
 @dsn_store_path = ENV['HOME'] + "/dsn"
-# 自動実行されるDSNファイルの拡張子
+# Extension of the DSN file that is automatically executed
 @dsn_file_ext = ".dsn"
-# DSN実行ログの格納ディレクトリ
+# Storage directory of DSN execution log
 @dsn_log_store_path = ENV['HOME'] + "/dsn/log"
-# DSN実行ログファイルの拡張子
+# Extension of DSN execution log file
 @dsn_log_file_ext = ".log"
 
 ##############
 # Translator #
 ##############
-# ノード情報の送信周期[s]
+# Transmission cycle of the node information[s]
 @statistics_interval = 30
 
 ###############
 # NCPS Client #
 ###############
-# ネットワーク種別
+# Network type
 $ncps_network = "OpenFlow"
 #$ncps_network = "TCP"
 
-# データメッセージ用基底ポート
+# Base port for data message
 @data_port_base = 11001
 
-# データメッセージ用ポートの上限
+# The upper limit of the port for the data message
 @data_port_max = 20000
 
-# コントロールメッセージ用ポート
+# Port for the control message
 @ctrl_port = 20001
 
-# リクエストを一斉送信する最大数
+# The maximum number of broadcasts request
 @request_slice = 100
 
-# HeartBeatパケットの送信有無
+# Submit the presence or absence of HeartBeat packet
 @use_heart_beat = false
 
-# HeartBeatパケットの送信周期[s]
+# Transmission cycle of HeartBeat packet[s]
 @heart_beat_interval = 5
 
-# NCPS Serverとの通信用ポート
+# Port for communication with the NCPS Server
 @cmd_port = 31001
 
 $config = Hash.new

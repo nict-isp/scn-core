@@ -6,16 +6,16 @@ require_relative './cull'
 require_relative './string'
 require_relative './virtual'
 
-#= 中間処理のファクトリクラス
+#= Factory class of intermediate processing
 #
 #@author NICT
 #
 class ProcessingFactory
 
-    # データ処理クラスのインスタンスを生成
+    # To create an instance of the data processing class.
     #
-    #@param [Hash] processing 中間処理要求
-    #@return [Processing] 中間処理クラス
+    #@param [Hash] processing  Intermediate processing request
+    #@return [Processing] Intermediate processing class
     #
     def self.get_instance(processing)
         processing.each do |name, param|
@@ -33,15 +33,15 @@ class ProcessingFactory
             when "virtual"
                 proccesing = Virtual.new(param)
 
-            # 以下はインナーサービスで直接生成する
+            # The following is generated directly in the inner service.
             #when "aggregate"
             #when "merge"
             else
                 log_warn("undefined processing. (name=#{name})")
-                proccesing = Processing.new({}) # 何もしない
+                proccesing = Processing.new({}) # do nothing
             end
 
-            return proccesing   # 中間処理要求は、1要素しか持たない。
+            return proccesing   # Intermediate processing request does not have only one element.
         end
     end
 end

@@ -1,38 +1,41 @@
 # -*- coding: utf-8 -*-
 require 'timeout'
 
-# タイムアウト時間
+# Time-out time
 DEFAULT_TIMEOUT = 60
-# NCPSサーバーとの接続時のタイムアウト時間
+
+# Time-out time for connection to the NPS server
 TIMEOUT_TO_SERVER = DEFAULT_TIMEOUT
-# 他のNCPSクライアントとの接続時のタイムアウト時間
+
+# Time-out time for connections with other NCP client
 TIMEOUT_TO_CLIENT = DEFAULT_TIMEOUT
-# PAIXサーバーとの接続時のタイムアウト時間
+
+# Time-out time for connection to the PIAX server
 TIMEOUT_TO_PAIX = DEFAULT_TIMEOUT
 
-#= ネットワークエラー
-# ネットワークの構成に問題がある場合に送出されるエラー
+#= Network error
+# Error sent if there is a problem with the configuration of the network.
 #
 #@author NICT
 #
 class NetworkError < StandardError; end
 
-#= 無効なIDエラー
-# サーバーへ要求したIDが不正だった場合に送出されるエラー
+#= Invalid ID error
+# Error sent if the requested ID to the server was invalid.
 #
 #@author NICT
 #
 class InvalidIDError < StandardError; end
 
-#= サーバー内部エラー
-# サーバー内で予期せぬエラーが発生した場合に送出されるエラー
+#= Internal Server Error
+# Error sent if an unexpected error has occurred in the server.
 #
 #@author NICT
 #
 class InternalServerError < StandardError; end
 
-#= アプリケーションエラー
-# アプリケーション内でエラーが発生した場合に送出されるエラー
+#= Application error
+# Error sent if an error occurs in the application.
 #
 #@author NICT
 #

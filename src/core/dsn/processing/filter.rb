@@ -2,17 +2,17 @@
 require_relative './processing'
 require_relative '../compile/conditions'
 
-#= フィルタリング処理クラス
+#= Filtering processing class
 #
 #@author NICT
 #
 class Filter < Processing
 
-    # フィルタリング処理を実施する。
-    # フィルタリング条件を満たすデータのみを送信する。
+    # To execute the filtering process.
+    # Send only the filtering satisfy data.
     #
-    #@param [Hash] processing_data 中間処理データ
-    #@return フィルタリングを行なったデータ（入力データと同じフォーマット）
+    #@param [Hash] processing_data  Intermediate processing data
+    #@return Data was subjected to filtering(The same format as the input data)
     #
     def execute(processing_data)
         return processing_values(processing_data, :select) { |data|
