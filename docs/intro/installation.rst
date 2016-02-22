@@ -17,7 +17,8 @@ Install dependent libraries
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _msgpack-rpc-python: http://msgpack.org/
 .. _tornado: http://www.tornadoweb.org/en/stable/
-
+.. _java: http://www.oracle.com/technetwork/java/index.html
+.. _RJB: http://www.artonx.org/collabo/backyard/?RubyJavaBridge
 
 Before installing SCN Core, the following libraries must be installed.
 
@@ -38,6 +39,10 @@ Before installing SCN Core, the following libraries must be installed.
 #. `msgpack-rpc-python`_ MessagePack RPC library for Python
 
 #. `tornado`_ Web framework and asynchronous communication library of Python
+
+#. `java`_ JDK8
+
+#. `RJB`_ RJB is a bridge program that connect between Ruby and Java with Java Native Interface.
 
 
 Installation of SCN Core
