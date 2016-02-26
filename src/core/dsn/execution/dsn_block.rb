@@ -5,28 +5,29 @@ require_relative '../compile/conditions'
 require_relative '../../translator/supervisor'
 require_relative './complex_channel_settings'
 
-#= チャネル設定ブロッククラス
-#  DSN記述の event_condition do ブロックの設定を保持する。
+#= Channel configuration block class
+#  To retain the setting of event_condition do block of DSN description.
 #
 #@author NICT
 #
 class DSNEventBlock
     include DSN
 
-    #@return [String] overlay ID
+    #@return [String]  Overlay ID
     attr_reader   :overlay
-    #@return [Hash]          イベント成立条件
+    #@return [Hash]    Condition that the event is established
     attr_reader   :event_cond
-    #@return [True]         イベント成立状態
-    #@return [False]         イベント非成立状態
+    #@return [True]    State that the event has been established
+    #@return [False]   State that the event has not been established
     attr_reader   :event_state
-    #@return [Array]         イベント成立時チャネル設定リスト
+    #@return [Array]   Channel set list at the time of establishment of an event
     attr_reader   :channel_settings
-    #@return [Array]         イベント成立時状態監視
+    #@return [Array]   State monitoring at the time of establishment of an event
     attr_reader   :trigger
 
-    #@param [Hash] DSN記述イベントコンディションブロック
-    #@param [Hash] サービスブロック（ChannelSettings へ渡す）
+    #@param [String] overlay        Overlay ID
+    #@param [Hash]   event_hash     DSN description event condition block
+    #@param [Hash]   channels_hash  Service block(Pass to ChannelSettings)
     #
     def initialize(overlay, event_hash, channels_hash)
         log_debug{"event_hash = #{event_hash}"}
@@ -39,8 +40,8 @@ class DSNEventBlock
         parse_service_link(event_hash, channels_hash)
     end
 
-    #@param [Hash] trigger_hash DSN記述全体のトリガ設定
-    #@return [Hash] 更新したトリガ設定
+    #@param [Hash] trigger_hash  Trigger setting of the entire DSN description
+    #@return [Hash] Trigger settings updated
     #
     def merge_trigger(trigger_hash)
         log_debug{"#{trigger_hash}"}
@@ -60,19 +61,19 @@ class DSNEventBlock
         return trigger_hash
     end
 
-    #@param [Hash] merge_hash DSN記述全体のマージ設定
-    #@return [Hash] 更新したマージ設定
+    #@param [Hash] merge_hash  Merge settings for the entire DSN description
+    #@return [Hash] Merge settings updated
     #
     def merge_merges(merge_hash)
         if @event_state == true
             @merges.each do |merge|
                 dst = merge[KEY_MERGE_DST]
                 if merge_hash.has_key?(dst)
-                    # 同じdst指定のマージが複数ある場合
+                    # If the merge that specify the same dst is more than one.
                     dst_merge = merge_hash[dst]
-                    # すべてのソースを結合
+                    # Combine all of the source.
                     dst_merge[KEY_MERGE_SRC]  |= merge[KEY_MERGE_SRC]
-                    # 最小のディレイを適用
+                    # To apply the delay of minimum.
                     dst_merge[KEY_DELAY] = [dst_merge[KEY_DELAY], merge[KEY_DELAY]].min
                 else
                     merge_hash[dst] = merge
@@ -82,17 +83,17 @@ class DSNEventBlock
         return merge_hash
     end
 
-    #@param [Hash] overlay_info オーバーレイ情報
-    #@return [Hash] ブロックの状態（ログ出力向け）
+    #@param [Hash] overlay_info  Overlay information
+    #@return [Hash]  State of Block(for logging)
     #
     def update_state(events)
         log_debug{"#{events}"}
-        # 条件成立確認
+        # To make sure that the conditions are satisfied.
         @event_state = Conditions.ok?(@event_cond, events)
     end
 
-    #@param [Hash] イベントコンディションブロック
-    #@param [Hash] サービスブロック（ChannelSettings へ渡す）
+    #@param [Hash] event_hash     Event condition block
+    #@param [Hash] channels_hash  Service block(Pass to ChannelSettings)
     #
     def modify(event_hash, channels_hash)
         log_debug(){"old_settings = #{@channel_settings}"}
@@ -101,38 +102,38 @@ class DSNEventBlock
 
         new_settings = []
         old_settings = @channel_settings.dup
-        # 追加されているチャネルを、@channel_settingへ追加する。
+        # To add a channel that have been added to @channel_setting.
         event_hash[KEY_SERVICE_LINK].each do |link_hash|
             new_setting = ComplexChannelSettings.new(@overlay, link_hash, channels_hash, @block)
 
-            # 複数同じ要素がある場合を考慮し、delete_atを使用する
+            # Consideration of a case in which the same elements there is more than one, to use the delete_at.
             old_index = old_settings.index(new_setting)
             if old_index.nil?
                 old_index = old_settings.index{|setting| setting.same_channel?(new_setting) }
                 if old_index.nil?
-                    # 新規セッティング
+                    # New Settings
                     new_settings << new_setting
                 else
-                    # srcとdstのみの一致
+                    # Match of only src and dst
                     old_setting = old_settings.delete_at(old_index)
                     old_setting.update(link_hash, channels_hash)
                     new_settings << old_setting
                 end
             else
-                # 完全一致（操作不要）
+                # Perfect matching(Operation unnecessary)
                 new_settings << old_settings.delete_at(old_index)
             end
         end
         @channel_settings = new_settings
-        # 不要なチャネルを削除
+        # To delete the unwanted channels.
         old_settings.each {|setting| setting.delete}
 
         log_debug(){"new_settings = #{@channel_settings}"}
     end
 
-    # ブロックのチャネル要求を更新する
+    # To update the channel request of the block.
     #
-    #@param [Hash<String, MergeSetting>] マージ要求
+    #@param [Hash<String, MergeSetting>] merge_settings  Merge request
     #@retrun [void]
     #
     def update(merge_settings)
@@ -149,8 +150,8 @@ class DSNEventBlock
 
     private
 
-    #@param [Hash] イベントコンディションブロック
-    #@param [Hash] サービスブロック（ChannelSettings へ渡す）
+    #@param [Hash] event_hash     Event condition block
+    #@param [Hash] channels_hash  Service block(Pass to ChannelSettings)
     #
     def parse_service_link(event_hash, channels_hash)
         @merges = event_hash[KEY_MERGES]
@@ -166,8 +167,9 @@ class DSNEventBlock
         end
     end
 
-    #@param [Hash] 単一のイベント成立条件
-    #@return [String] 単一のイベント成立条件の文字列
+    #@param [String] key     Key
+    #@param [Array]  values  Values
+    #@return [String] String of condition that the event is established
     #
     def compile_condition(key, values)
         case values[1]
@@ -181,7 +183,8 @@ class DSNEventBlock
         return result
     end
 
-    #@return [String] イベント成立条件の文字列
+    #@param [Hash] conditions   Condition that the event is established
+    #@return [String] String of condition that the event is established
     #
     def compile_conditions(conditions)
         return "" if conditions.nil?
@@ -196,30 +199,31 @@ class DSNEventBlock
             else
                 result = compile_condition(key, values)
             end
-            return result   # 条件式のHashは1要素しか持たない
+            return result   # Hash of the conditional expression has only one element.
         end
     end
 end
 
-#= チャネル常時設定ブロッククラス
-#  DSN記述の bloom do ブロックの設定を保持する。
+#= Channel constantly setting block class
+#  To retain the setting of bloom do block of DSN description.
 #
 class DSNConstantBlock < DSNEventBlock
 
-    #@param [Hash] DSN記述イベントコンディションブロック
-    #@param [Hash] サービスブロック（ChannelSettings へ渡す）
+    #@param [String] id             Overlay ID
+    #@param [Hash]   event_hash     DSN description event condition block
+    #@param [Hash]   channels_hash  Service block(Pass to ChannelSettings)
     #
     def initialize(id, event_hash, channels_hash)
         super
-        @event_state = true # 不変
-        @event_cond = nil # 不要
+        @event_state = true # Immutable
+        @event_cond = nil # Unnecessary
 
         parse_service_link(event_hash, channels_hash)
     end
 
-    #@param [Hash] オーバーレイ情報
-    #@return [Proc] チャネル設定更新処理ブロック
-    #@note イベント条件判定不要
+    #@param [Hash] overlay_info  Overlay information
+    #@return [Proc] Channel setting update processing block
+    #@note Event condition decision unnecessary
     #
     def update_state(overlay_info)
         # nop

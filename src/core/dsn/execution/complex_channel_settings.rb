@@ -2,24 +2,24 @@
 require_relative '../compile/dsn_define'
 require_relative './channel_settings'
 
-#= 複合チャネル要求クラス
-# DSNからのチャネル要求を、複数のチャネルに分解し、生成・変更する。
+#= Composite channel request class
+# The channel request from the DNS, decomposed into a plurality of channels, to generate and change.
 #
 #@author NICT
 #
 class ComplexChannelSettings
     include DSN
 
-    #@return [ServiceInfo] source service
+    #@return [ServiceInfo] Source service
     attr_reader   :src
-    #@return [ServiceInfo] destination service
+    #@return [ServiceInfo] Destination service
     attr_reader   :dst
-    #@return [Hash] application request
+    #@return [Hash] Application request
     attr_accessor :app_req
 
-    #@param [Hash] link_hash DSN記述転送定義
-    #@param [Hash] channels_hash DSN記述チャネル定義
-    #@param [String] block DSNブロック名
+    #@param [Hash]   link_hash      Transfer definition of DSN description
+    #@param [Hash]   channels_hash  Channel definition of DSN description
+    #@param [String] block          DSN block name
     #
     def initialize(overlay, link_hash, channels_hash, block)
         @overlay      = overlay
@@ -35,18 +35,18 @@ class ComplexChannelSettings
         @src == o.src && @dst == o.dst && @app_req == o.app_req
     end
 
-    #@param [ChannelSettings] o ChannelSettingsオブジェクト
-    #@return [True] 送受信先の設定が同じ
-    #@return [False] 送受信先の設定が異なる
+    #@param [ChannelSettings] o  ChannelSettings object
+    #@return [True]  Setting of send and receive destination is same.
+    #@return [False] Setting of send and receive destination is not same.
     #
     def same_channel?(o)
         @src == o.src && @dst == o.dst
     end
 
-    # チャネル要求を更新する
+    # To update the channel request
     #
-    #@param [Hash] link_hash DSN記述転送定義
-    #@param [Hash] channels_hash DSN記述チャネル定義
+    #@param [Hash] link_hash      Transfer definition of DSN description
+    #@param [Hash] channels_hash  Channel definition of DSN description
     #@return [void]
     #
     def update(link_hash, channels_hash)
@@ -69,9 +69,9 @@ class ComplexChannelSettings
         }
     end
     
-    # チャネル要求を実際のチャネルに分解、生成する。
+    # To decompose and generates channel request to the actual channel.
     #
-    #@param [Hash<String, MergeSettings>] merge_settings マージ要求
+    #@param [Hash<String, MergeSettings>] merge_settings  Merge request
     #@return [void]
     #
     def update_path(merge_settings)
@@ -82,16 +82,16 @@ class ComplexChannelSettings
         select      = @app_req["scratch"]["select"].dup
         processings = @app_req["processing"].dup
 
-        # aggregte関数のある場合、関数前後でパスを分割
+        # If there is a aggregate function, to divide the path before and after the function.
         aggregate = processings.index{|processing| processing.has_key?("aggregate")}
         if aggregate
-            # パス前半の中間処理
+            # Intermediate processing of the path first half.
             if aggregate > 0
                 aggregate_processing = processings.slice(0..aggregate - 1)
             else
                 aggregate_processing = []
             end
-            # aggregateサービス要求
+            # aggregate service request
             aggregate_req = processings[aggregate]["aggregate"]
             aggregate_req["type"] = "aggregate"
             aggregate_channel     = {
@@ -99,23 +99,23 @@ class ComplexChannelSettings
                 "name"  => "#{scratch["name"]}#aggregate",
                 "multi" => 1,
             }
-            # aggregateサービスまでのパスを生成
+            # To generate a path to the aggregate service.
             active_paths << create_settings("aggregate", scratch, aggregate_channel, select, aggregate_processing, @block)
 
-            # パスの残りを設定
+            # To set the rest of the path.
             select      = []
             processings = processings.slice(aggregate + 1..-1)
             scratch     = aggregate_channel
         end
     
-        # merge関数のdstに設定されている場合、mergeを経由する形でパスを生成
+        # If it sets to dst of merge function, and generates a path through the merge.
         merge_pair = merge_settings.find{|key, merge| merge.dst == @channel["name"] }
         if merge_pair.nil?
-            # 通常のパス
+            # Normal path
             active_paths << create_settings("normal", scratch, channel, select, processings, @block)
         else
             merge = merge_pair[1]
-            # mergeへの入力とmergeからの出力用のパスを生成
+            # To generate a path for the input to the merge and for the output from the merge.
             active_paths << create_settings("merge_in", scratch, merge.channel, select, processings, @block)
             active_paths << create_settings("merge_out", merge.channel, channel, merge.app_req["select"], merge.app_req["processing"], merge.block)
         end
@@ -123,9 +123,9 @@ class ComplexChannelSettings
         @active_paths = active_paths
     end
 
-    # チャネルを活性化する
+    # To activate the channel.
     #
-    #@param [Hash<String, MergeSettings>] merge_settings マージ要求
+    #@param [Hash<String, MergeSettings>] merge_settings  Merge request
     #@return [void]
     #
     def activate(merge_settings)
@@ -140,7 +140,7 @@ class ComplexChannelSettings
         end
     end
 
-    # チャネルを非活性化する
+    # To inactivates the channel.
     #
     #@retun [void]
     #
@@ -150,7 +150,7 @@ class ComplexChannelSettings
         end
     end
 
-    # チャネルを削除する
+    # To delete the channel.
     #
     #@retun [void]
     #
@@ -162,7 +162,7 @@ class ComplexChannelSettings
 
     private 
 
-    # チャネル要求を生成する。生成済みの場合はチャネル要求を更新する
+    # To generate a channel request. If already generated to update the channel request.
     #
     def create_settings(key, scratch, channel, select, processings, block)
         app_req = deep_copy(@app_req)

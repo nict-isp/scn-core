@@ -5,21 +5,21 @@ require_relative './dsn_format_error'
 
 module DSN
 
-    #= DSN記述構文読み取りクラス
-    # DSN記述の構文を取り扱う。
+    #= DSN description syntax reading class
+    # It deals with the syntax of the DSN description.
     #
     #@author NICT
     #
     class DSNTextParser
 
-        #@param [Array<Class>] DSN記述構文クラスの配列
+        #@param [Array<Class>] syntaxs_class  Array of DSN description syntax class
         #
         def initialize( syntaxs_class )
             @syntaxs_class = syntaxs_class
         end
 
-        #@param [DSNText] DSN記述
-        #@return [Array<Syntax>] DSN記述構文インスタンスの配列
+        #@param [DSNText] dsn_text  DSN description
+        #@return [Array<Syntax>] Array of DSN description syntax instance
         #
         def parse_lines(dsn_text)
             log_trace(dsn_text)
@@ -44,7 +44,7 @@ module DSN
                     end
 
                     if syntax.nil?
-                        # 有効なDSN記述ブロック/構文と一致しません
+                        # It does not match a valid DNS description block / syntax.
                         raise DSNInternalFormatError, ErrorMessage::ERR_NOT_MATCH_SYNTAX
                     end
 
@@ -60,7 +60,7 @@ module DSN
                 end
             end
             if not syntax.nil?
-                # 構文の終端が存在しません。
+                # The end of the syntax does not exist.
                 raise DSNFormatError.new(
                 ErrorMessage::ERR_NO_TERMINATOR,
                 syntax.dsn_text, syntax.syntax_name)

@@ -5,32 +5,29 @@ require_relative './dsn_define.rb'
 
 module DSN
 
-    #= サービスクラス
-    # DSN記述のdiscovery構文を中間コードに変換する。
+    #= Service class
+    # To convert the "discovery" syntax of DSN described in the intermediate code.
     #
     #@author NICT
     #
     class Service < Syntax
 
-        #@return [String] サービス名
+        #@return [String] service name
         attr_reader :name
-        #@return [Hash<String,Array<String>>] キー:attr_name, 値:[attr_value1,…]
+        #@return [Hash<String,Array<String>>] key:attr_name, value:[attr_value1,…]
         attr_reader :attr_data
 
-        #@param [String] サービス名
-        #@param [Hash<String,Array<String>>] キー:attr_name, 値:[attr_value1,…]
-        #
         def initialize()
             super()
             @syntax_name = "service"
-            @continued_line = "" # 前の行からの続き
+            @continued_line = "" # Continuation of the previous line
         end
 
-        # 構文開始判定処理
+        # Syntax start determination processing
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [Syntax] DSN記述構文サブクラスのインスタンス
-        #@return [nil] 構文開始条件不成立
+        #@param [String] line  String line of DSN description
+        #@return [Syntax] Instance of a DSN description syntax subclass
+        #@return [nil]    Syntax start condition is not established
         #
         def self.start_line?(line)
             log_trace(line)
@@ -41,11 +38,11 @@ module DSN
             end
         end
 
-        # 構文解析処理
+        # Parsing process
         #
-        #@param [String] line DSN記述の文字列一行
-        #@param [Integer] offset 文字列の先頭行数
-        #@return [Boolean] 構文終了
+        #@param [String]  line    String line of DSN description
+        #@param [Integer] offset  The number of the first line of the string
+        #@return [Boolean] Syntax Exit
         #
         def parse_line(line, offset)
             super(line, offset)
@@ -74,30 +71,30 @@ module DSN
             end
         end
 
-        # サービス名解析処理
+        # Service name analysis processing
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [String] 未解析文字列
+        #@param [String] line  String line of DSN description
+        #@return [String] Unanalyzed string
         #
         def _parse_name(line)
             log_trace(line)
             @name, left_line = DSNText.split(line, ":", 2, false)
-            # start_lineでmatch後の呼び出しのため、@nameの妥当性はチェック不要
+            # For call after match in start_line, the validity of "@ name" is unnecessary.
             if left_line.nil?
                 left_line = ""
             end
             return left_line
         end
 
-        # 情報抽出解析処理
+        # Information extraction analysis process
         #
-        #@param [String] line DSN記述の文字列一行
-        #@return [String] 未解析文字列
+        #@param [String] line String line of DSN description
+        #@return [String] Unanalyzed string
         #
         def _parse_attr_data(line)
             log_trace(line)
             line.strip!
-            return line if line.size == 0 # 次の行に継続と判断
+            return line if line.size == 0 # It is determined that continued on the next line.
 
             if DiscoveryMethod.is_method?(line)
                 if line[-1] == ")"
@@ -105,17 +102,17 @@ module DSN
                     @attr_data = DiscoveryMethod.parse(method_text)
                     return ""
                 else
-                    return line # 次の行に継続と判断
+                    return line # It is determined that continued on the next line.
                 end
             else
                 raise DSNInternalFormatError, ErrorMessage::ERR_DISCOVERY_FORMAT
             end
         end
 
-        # 構文内部解析処理
+        # Syntax internal analysis process
         def parse_inside()
-            # サービス名チェックは構文を取り出した時点で
-            # 済んでいるため不要、予約語確認も必要なし
+            # The service name check is not necessary because it done at the time of taking out the syntax.
+            # Confirmation of the reserved word even without the need.
 
             return self
         rescue DSNInternalFormatError => err
@@ -123,10 +120,10 @@ module DSN
             raise DSNFormatError.new(err.message, @dsn_text)
         end
 
-        # discovery構文を中間コードに変換する。
+        # To convert the discovery syntax into an intermediate code.
         #
         #@param なし
-        #@return [Hash<String,Hash>] discovery構文の中間コード
+        #@return [Hash<String,Hash>] Intermediate code of discovery syntax
         #@example
         #   {"@service_name1":{"attr_name1":"attr_value1", "attr_name2":"attr_value2"}}
         #

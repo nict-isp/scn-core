@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 require_relative '../compile/dsn_define'
 
-#= チャネル要求クラス
-# チャネル生成・変更時の情報を保持する。
+#= Channel request class
+# To retain the information at the time of channel generation and change.
 #
 #@author NICT
 #
 class ChannelSettings
     include DSN
 
-    #@return [String]   overlay ID
+    #@return [String]  Overlay ID
     attr_reader :overlay
-    #@return [String]   channel ID
+    #@return [String]  Channel ID
     attr_accessor :id
-    #@return [Hash] application request
+    #@return [Hash]    Application request
     attr_accessor :app_req
 
-    #@param [String] overlay オーバーレイID
-    #@param [Hash] scratch 送信側チャネル要求
-    #@param [Hash] channel 受信側チャネル要求
-    #@param [Hash] app_req 中間処理要求
-    #@param [String] block DSNブロック名
+    #@param [String] overlay  Overlay ID
+    #@param [Hash]   scratch  Sender channel request
+    #@param [Hash]   channel  Receiver channel request
+    #@param [Hash]   app_req  Intermediate processing request
+    #@param [String] block    DNS block name
     #
     def initialize(overlay, scratch, channel, app_req, block)
         @overlay      = overlay
@@ -33,7 +33,7 @@ class ChannelSettings
         @needs_update = false
     end
 
-    # チャネルを活性化する
+    # To activate the channel
     #
     #@retun [void]
     #
@@ -49,7 +49,7 @@ class ChannelSettings
         @needs_update = false
     end
 
-    # チャネルを非活性化する
+    # To inactivates the channel
     #
     #@retun [void]
     #
@@ -61,7 +61,7 @@ class ChannelSettings
         end
     end
 
-    # チャネルを削除する
+    # To delete a channel
     #
     #@retun [void]
     #
@@ -73,7 +73,7 @@ class ChannelSettings
         end
     end
 
-    # チャネルを更新する
+    # To update the channel
     #
     def update(scratch, channel, app_req)
         if (@scratch != scratch) || (@channel != channel) || (@app_req != app_req)
@@ -97,21 +97,21 @@ class ChannelSettings
     end
 end
 
-#= サービス情報クラス。
-# サービス情報を保持する。
+#= Service information class
+# To retain the service information.
 #
 #@author NICT
 #
 class ServiceInfo
-    #@return [String] scratch or channel name
+    #@return [String]  Scratch or channel name
     attr_accessor   :name
-    #@return [Hash] service query
+    #@return [Hash]    Service query
     attr_accessor   :query
-    #@return [Integer] multi number
+    #@return [Integer] Multi number
     attr_accessor   :multi
 
-    #@param [String] name scratch or channel name
-    #@param [Hash] hash DSN記述サービス定義
+    #@param [String] name  Scratch or channel name
+    #@param [Hash] hash DSN description service definition
     #
     def initialize(name, hash)
         @name  = name
@@ -125,16 +125,16 @@ class ServiceInfo
     end
 end
 
-#= チャネル情報クラス。
+#= Channel information class
 #
 #@author NICT
 #
 class ServiceHash
     include DSN
 
-    #@param [String] name scratch or channel name
-    #@param [Hash] hash DSN記述サービス定義
-    #@return [Hash] service query
+    #@param [String] name  Scratch or channel name
+    #@param [Hash]   hash  DSN description service definition
+    #@return [Hash] Service query
     #
     def self.query(name, hash)
 
@@ -142,9 +142,9 @@ class ServiceHash
         return query
     end
 
-    #@param [String] name scratch or channel name
-    #@param [Hash] hash DSN記述サービス定義
-    #@return [Integer] サービス並列数
+    #@param [String] name  Scratch or channel name
+    #@param [Hash]   hash  DSN description service definition
+    #@return [Integer] Service number of parallel
     #
     def self.multi(name, hash)
         return hash[name][KEY_MULTI][0].to_i

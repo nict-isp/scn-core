@@ -7,19 +7,17 @@ require_relative './dsn_text_parser'
 
 module DSN
 
-    #= DSN記述解釈クラス
-    # DSN記述を解釈し、中間コードの変換する。
+    #= DSN description interpretation class
+    # Interprets the DSN description, it is converted into an intermediate code.
     #
     #@author NICT
     #
     class DSN < Syntax
 
-        #@return [String] DSN記述の構成要素名
+        #@return [String] Component name of the DSN description
         attr_reader :syntax_name
 
-        #@param [StateDo] state doブロックを取り扱うクラスのインスタンス
-        #@param [BloomDo] bloom doブロックを取り扱うクラスのインスタンス
-        #@param [String] overlay_name オーバーレイ名
+        #@param [String] overlay_name  Overlay name
         #
         def initialize(overlay_name)
             super()
@@ -30,10 +28,10 @@ module DSN
             @overlay_name = overlay_name
         end
 
-        # DSN記述を解釈するための下位のインスタンスを生成する。
+        # To generate a lower instance for interpreting the DSN description.
         #
-        #@param [DSNText] text DSN記述全体
-        #@param [String] overlay_name オーバーレイ名
+        #@param [DSNText] text          Whole DSN description
+        #@param [String]  overlay_name  Overlay name
         #@example
         # state do
         #  @service_name: discovery(attr_name=attr_value, attr_name=attr_value...)
@@ -48,8 +46,8 @@ module DSN
         #   …
         # end
         #
-        #@return [DSN] DSNクラスのインスタンス
-        #@raise [DSNFormatError] 構文として正しくないデータが設定された。
+        #@return [DSN] Instance of DNS class
+        #@raise [DSNFormatError] Incorrect data as the syntax is set
         #
         def self.parse(text, overlay_name)
             dsn = DSN.new(overlay_name)
@@ -91,10 +89,9 @@ module DSN
 
         end
 
-        # DSN記述を中間コードに変換する。
+        # To convert the DSN description in the intermediate code.
         #
-        #@param なし
-        #@return [Hash<String,String>] DSN記述の中間コード
+        #@return [Hash<String,String>] Intermediate code of DSN description
         #@example
         #    "overlay":"sample1",
         #    "services": {
@@ -105,10 +102,10 @@ module DSN
         #    "service_links":{…
         #
         def to_hash()
-            #overlayキーワード部分を生成する。
+            # To generate the overlay keyword part.
             dsn = {KEY_OVERLAY => @overlay_name}
 
-            #servicesキーワード部分を生成する。
+            # To generate the services keyword part.
             state_do = @state_do.to_hash
             dsn.merge!(state_do)
 

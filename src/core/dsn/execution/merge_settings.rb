@@ -2,29 +2,30 @@
 require_relative '../compile/dsn_define'
 require_relative './channel_settings'
 
-#= マージ要求クラス
-# DSNからのマージ要求を、チャネルに変換し、生成・変更する。
+#= Merge request class
+# To convert the merge request from the DNS to the channel, to generate and change.
 #
 #@author NICT
 #
 class MergeSettings
     include DSN
 
-    #@return [Hash] merge channel request
+    #@return [Hash]          Merge channel request
     attr_reader   :channel
-    #@return [String] source channel
+    #@return [String]        Source channel
     attr_reader   :dst
-    #@return [Array<String>] destination channels
+    #@return [Array<String>] Destination channels
     attr_reader   :srcs
-    #@return [Boolean] merge is active
+    #@return [Boolean]       Merge is active
     attr_reader   :active
-    #@return [String] merge block name
+    #@return [String]        Merge block name
     attr_reader   :block
-    #@return [String] merge application request
+    #@return [String]        Merge application request
     attr_reader   :app_req
 
-    #@param [Hash] merge_hash DSN記述マージ定義
-    #@param [Hash] channels_hash DSN記述チャネル定義
+    #@param [String] overlay        Overlay ID
+    #@param [Hash]   merge_hash     DSN description merge definition
+    #@param [Hash]   channels_hash  DSN description channel definition
     #
     def initialize(overlay, merge_hash, service_hash)
         @overlay  = overlay
@@ -34,10 +35,10 @@ class MergeSettings
         update(merge_hash, service_hash)
     end
 
-    # マージ要求を更新する
+    # To update the merge request
     #
-    #@param [Hash] merge_hash DSN記述マージ定義
-    #@param [Hash] channels_hash DSN記述チャネル定義
+    #@param [Hash] merge_hash     DSN description merge definition
+    #@param [Hash] channels_hash  DSN description channel definition
     #@return [void]
     #
     def update(merge_hash, service_hash)
@@ -62,7 +63,7 @@ class MergeSettings
         end
     end
 
-    # チャネルを活性化する
+    # To activate the channel
     #
     #@return [void]
     #
@@ -77,7 +78,7 @@ class MergeSettings
         end
     end
 
-    # チャネルを非活性化する
+    # To inactivates the channel
     #
     #@retun [void]
     #
@@ -90,7 +91,7 @@ class MergeSettings
 
     private 
 
-    # チャネル要求を生成する。生成済みの場合はチャネル要求を更新する
+    # To generate a channel request. If already generated to update the channel request.
     #
     def create_settings(src, scratch, channel)
         app_req = {

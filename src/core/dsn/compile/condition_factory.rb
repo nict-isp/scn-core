@@ -7,22 +7,22 @@ require_relative './not_modifier'
 
 module DSN
 
-    #= 条件判定についての中間コード化および結果判定をおこなうクラス。
+    #= Classes for intermediate encoding and result judgment about the condition determination.
     #
     #@author NICT
     #
     class ConditionFactory
 
-        # 中間コードに変換する。
+        #It is converted into an intermediate code.
         #
-        #@param [DSNText] expression 中間コードに変換する対象の文字列
-        #@return [DSNText] result 各構文による処理結果
-        #@raise [DSNFormatError] 不適切なConditionが入力された場合
+        #@param [DSNText] expression  String of the object to be converted to an intermediate code
+        #@return [DSNText] result The result of processing by each syntax
+        #@raise [DSNFormatError] Invalid condition has been input
         #
         def self.parse(expression)
             case
             when SignCondition.match?(expression)
-                #不等号の場合
+                # In the case of inequality
                 result = SignCondition.parse(expression)
             when EventCondition.match?(expression)
                 result = EventCondition.parse(expression)
@@ -33,24 +33,25 @@ module DSN
             when NotModifierCondition.match?(expression)
                 result = NotModifierCondition.parse(expression)
             else
-                #Conditionとして不適切な場合はエラー
+                # Invalid case as Condition is error
                 raise DSNInternalFormatError.new(ErrorMessage::ERR_NO_CONDITION)
             end
             return result
         end
 
-        # 指定したデータが条件を満たしているかどうかを判定する。
+        # It determines whether or not the specified data meets the conditions.
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] 判定条件, 閾値
-        #@param [Hash<String>] 条件判定対象のデータ名をキーに、値として、条件判定対象の値を持つハッシュ。 
-        #@return [Boolean] 判定条件を満たしている場合は、true,満たしていない場合はfalse
+        #@param [String]        key     Data name of the condition determination target
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination object as a key, 
+        #                               the value of the condition determination object as a value.
+        #@return [Boolean] True when it meet the judgment conditions, false when it does not meet.
         #
         def self.ok?(key, values, data)
             sign, threshold = values
             case sign
             when REG_SIGN_FORMAT
-                #不等号の場合
+                # In the case of inequality
                 result = SignCondition.ok?(key, values, data)
             when KEY_RANGE
                 result = RangeMethodCondition.ok?(key, values, data)

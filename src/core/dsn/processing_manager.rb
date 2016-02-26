@@ -7,7 +7,7 @@ require_relative './processing/in_network'
 require_relative '../translator/stats'
 require_relative '../translator/supervisor'
 
-#= 中間処理管理クラス
+#= Intermediate processing management class
 #
 #@author NICT
 #
@@ -27,11 +27,11 @@ class ProcessingManager
         }
     end
 
-    # オーバーレイ情報から中間処理のインスタンスを生成・更新する
+    # To generate and update an instance of the intermediate processing from the overlay information
     #
-    #@param [String] overlay_id オーバーレイID
-    #@param [Overlay] overlay オーバーレイ情報
-    #@return [v]
+    #@param [String] overlay_id  Overlay ID
+    #@param [Overlay] overlay    Overlay information
+    #@return [void]
     #
     def set_overlay(overlay_id, overlay)
         log_trace(overlay_id, overlay)
@@ -62,35 +62,35 @@ class ProcessingManager
         @overlays[overlay_id]["services"] = new_services
     end
 
-    # 中間処理を行い、データを送信する。
+    # It performs intermediate processing, and transmits the data.
     #
-    #@param [String] service_id サービスID
-    #@param [Array<Hash>] data 送信データ
-    #@param [Integer] data_size 送信データサイズ
-    #@param [String] channel_id 転送時のチャネル指定（オーバーレイID#チャンネル名）
-    #@param [Boolean] sync Trueの時、送信の完了を待ち合せる（性能評価向けオプション）
-    #@return [JSON] 送信したチャネルの配列
-    #@raise [ArgumentError] 存在しないチャネルIDが指定された / データフォーマットが異常
-    #@raise [Timeout::Error] 要求がタイムアウトした場合
+    #@param [String]      service_id  Service ID
+    #@param [Array<Hash>] data        Transmitted data
+    #@param [Integer]     data_size   Transmitted data size
+    #@param [String]      channel_id  Channel specified at the time of transfer (overlay ID # channel name)
+    #@param [Boolean]     sync        When True, the wait for the completion of the transmission (performance evaluation for optional)
+    #@return [JSON] The array of the transmitted channels
+    #@raise [ArgumentError]  Nonexistent channel ID is specified / data format invalid
+    #@raise [Timeout::Error] Request timed out
     #
     def send_data(service_id, data, data_size, channel_id = nil, sync = false)
         log_trace(service_id, data_size, channel_id, sync)
         channels = []
         @scratchs.each do |id, scratch|
             onnode_processing, channel, path, overlay_id = scratch
-            next unless path.src_service.id == service_id   # 送信元サービスが一致しない
-            next unless channel.active                      # 非アクティブのチャネル
-            next if channel.source != channel_id            # 転送時のチャネル指定
+            next unless path.src_service.id == service_id   # source service does not match
+            next unless channel.active                      # channel of non-active
+            next if channel.source != channel_id            # channel specified at the time of transfer
 
             begin
-                # 送信時処理
+                # During transmission processing
                 processed = data
-                # 網内処理（あれば）
+                # In-Network data processing(if any)
                 innet_processings = @processings[path.id]
                 unless innet_processings.nil?
                     processed = innet_processings.execute(processed)
                 end
-                # 送信時処理
+                # During transmission processing
                 processed = onnode_processing.execute(processed)
 
                 if processed.size > 0
@@ -112,17 +112,17 @@ class ProcessingManager
         return channels
     end
 
-    # 中間処理を行い、データを受信する。
+    # Execue intermediate processing, to receive the data.
     #
-    #@param [String] path_id 論理パスID
-    #@param [Array<Hash>] data 受信データ
-    #@param [Integer] data_size 受信データサイズ
+    #@param [String]      path_id    Logical path ID
+    #@param [Array<Hash>] data       Received data
+    #@param [Integer]     data_size  Received data size
     #@return [void]
     #
     def receive_data(path_id, data, data_size)
         log_trace(path_id, data_size)
 
-        # 網内処理（あれば）
+        # In-Network data processing(if any)
         innet_processings = @processings[path_id]
         if innet_processings.nil?
             processed = data
@@ -135,8 +135,8 @@ class ProcessingManager
 
         onnode_processing, channel, path, overlay_id = @channels[path_id]
         if (not channel.nil?)
-            # 宛先ノードなので、受信時処理を実施
-            return unless channel.active    # 非アクティブのチャネル
+            # Since the destination node, execute the reception during processing
+            return unless channel.active    # channel of non-active
             EventManager.observe(overlay_id, channel.channel_req["channel"]["name"], processed)
 
             processed      = onnode_processing.execute(processed)
@@ -146,7 +146,7 @@ class ProcessingManager
             if inner_service.nil?
                 ApplicationRPCClient.receive_data(processed, processed_size, channel.id, dst_service.port)
 
-                # データの転送
+                # Transfer of data
                 send_data(dst_service.id, processed, processed_size, "#{overlay_id}##{channel.name}")
             else
                 inner_service.receive_data(processed, processed_size, channel.id)
@@ -154,7 +154,7 @@ class ProcessingManager
             Stats.receive_data(path, processed_size)
 
         elsif (not path.nil?)
-            # 中継ノードなので、次のフローへ再送
+            # Since the relay node, re-transmission to the next flow
             path.send(processed, data_size)
         else
             log_warn("Invalid path id #{path_id}")
@@ -252,7 +252,7 @@ class ProcessingManager
         end
     end
 
-    # インスタンスメソッドをクラスに委譲
+    # Delegate instance method to class
     class << self
         extend Forwardable
         def_delegators :instance, *ProcessingManager.instance_methods(false)

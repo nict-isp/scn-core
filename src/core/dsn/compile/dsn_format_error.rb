@@ -2,18 +2,18 @@
 
 module DSN
 
-    #= DSN記述フォーマットエラークラス
-    # DSN記述のフォーマットエラー時に発生する。
+    #= DSN description format error class
+    # Generated at the time of format error of DSN description.
     #
     #@author NICT
     #
     class DSNFormatError < StandardError
 
-        # エラーメッセージの表示、ログ出力、例外出力をおこなう。
+        # It makes display of error messages, log output, and exception output.
         #
-        #@param [String] msg エラーメッセージ
-        #@param [DSNText] dsn_text エラー発生時のDSNテキスト
-        #@param [String] text 追加情報のテキスト
+        #@param [String]  msg       Error message
+        #@param [DSNText] dsn_text  DSN text at the time of the error
+        #@param [String]  text      Text of the additional information
         #
         def initialize(msg, dsn_text, text="")
             if dsn_text.class == DSNText
@@ -23,7 +23,7 @@ module DSN
             end
             super(error_message)
 
-            #エラーメッセージをログに記録する。
+            # To record the error message in the log.
             log_error(error_message)
         end
     end

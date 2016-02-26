@@ -3,7 +3,7 @@ require 'singleton'
 require_relative './processing/trigger'
 require_relative '../utility/message'
 
-#= イベント管理クラス
+#= Event Management class
 #
 #@author NICT
 #
@@ -19,9 +19,9 @@ class EventManager
         @overlays = {}
     end
 
-    # 初期設定
+    # Initial setting
     #
-    #@param [Integer] interval イベント監視の動作周期
+    #@param [Integer] interval  The operation period of the event monitoring
     #
     def setup(interval)
         @interval = interval
@@ -29,10 +29,10 @@ class EventManager
         supervise()
     end
 
-    # 状態監視情報より、状態監視の中間処理を生成・更新する
+    # From state monitoring information, to generate and update the intermediate processing of state monitoring
     #
-    #@param [String] overlay_id オーバーレイID
-    #@param [Hash] app_request 状態監視情報
+    #@param [String] overlay_id  Overlay ID
+    #@param [Hash] app_request   State monitoring information
     #@return [void]
     #
     def set_overlay(overlay_id, overlay)
@@ -52,10 +52,10 @@ class EventManager
         log_debug {"#{@triggers}"}
     end
 
-    # 状態監視を実行する
+    # To execute the state monitoring
     #
-    #@param [Array<Hash>] data 受信データ
-    #@return [Array<Hash>] 受信時処理を実行した受信データ
+    #@param [Array<Hash>] data  Received data
+    #@return [Array<Hash>] Received data it execute the reception process
     #
     def observe(overlay_id, channel_name, data)
         log_trace(overlay_id, channel_name, data)
@@ -97,7 +97,7 @@ class EventManager
         end
     end
 
-    # インスタンスメソッドをクラスに委譲
+    # Delegate instance method to class
     class << self
         extend Forwardable
         def_delegators :instance, *EventManager.instance_methods(false)

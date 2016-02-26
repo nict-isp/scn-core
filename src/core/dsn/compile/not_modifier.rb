@@ -3,18 +3,18 @@ require_relative './condition'
 
 module DSN
 
-    #= likeメソッドを中間コード化、および
-    #  中間コードをもとに条件判定をおこなう。
+    #= The "not" method to intermediate encoding, and determining the condition
+    #  of the intermediate code to the original.
     #
     #@author NICT
     #
     class NotModifierCondition < Condition
         METHOD_NAME = "not"
 
-        #NotModifierCondtionの対象文字列かどうかを判定する。
+        # Determines whether or not the target string of NotModifierCondtion.
         #
-        #@param [DSNText] 検査対象文字列 
-        #@return [Boolean] 対象ならtrue,そうでなければfalse
+        #@param [DSNText] expression  Inspected string 
+        #@return [Boolean] True when target, false otherwise
         #
         def self.match?(expression)
             reg = REG_NOT_FORMAT.match(expression.single_line)
@@ -24,36 +24,36 @@ module DSN
             return true
         end
 
-        #文字列からインスタンスを作成する。
-        #notを除いた文字列をConditionFactoryのparse処理に入力する
+        # To create an instance from a string.
+        # To enter a string excluding the "not" in the analysis process of ConditionFactory.
         #
-        #@param [DSNText] expression 変換対象の文字列
-        #@return [NotModifierCondition] NotModifierConditionのインスタンス
-        #@raise [DSNFormatError] not修飾子が無効なクラスオブジェクトの場合
+        #@param [DSNText] expression  String to be converted
+        #@return [NotModifierCondition] Instance of NotModifierCondition
+        #@raise [DSNFormatError] class object that is invalid for "not" qualifier
         #
         def self.parse(expression)
-            # 1行文字列からnotを削除
+            # To remove the "not" from the first row string.
             temp_single_line =  expression.single_line.gsub(/^not\s+/,"")
 
-            # ConditionFactory.parseへ入力
+            # Input to "ConditionFactory.parse".
             temp_expression = DSNText.new(expression.text, expression.line_offset, temp_single_line)
             temp_result = ConditionFactory.parse(temp_expression)
 
-            # 中間コード相当の配列作成
+            # To create an array of intermediate code equivalent.
             ret_threshold =  [temp_result.sign].concat(temp_result.threshold)
 
             return NotModifierCondition.new(temp_result.data_name, METHOD_NAME, [ret_threshold])
         end
 
-        #指定された中間コードのデータが条件を満たしているか判定する。
-        #not修飾子を外した中間コードを条件チェックし
-        #返り値を反転させる。
+        # Determining data for the specified intermediate code is whether it meets the conditions.
+        # To check the condition of the intermediate code it remove the "not" qualifier.
         #
-        #@param [String] key 条件判定対象のデータ名
-        #@param [Array<String>] 判定条件, 閾値
-        #@param [Hash<String>] 条件判定対象のデータ名をキーに、値として、条件判定対象の値を持つハッシュ 
-        #@return [Boolean] 判定条件を満たしている場合は、true、満たしていない場合は、false
-        #@raise [ArgumentError] not修飾子でないデータ入力
+        #@param [String]        key     Data name of the condition determination target
+        #@param [Array<String>] values  Judgment condition, threshold
+        #@param [Hash<String>]  data    Hash with a data name of the condition determination object as a key, 
+        #                               the value of the condition determination object as a value.
+        #@return [Boolean] True when it meet the judgment conditions, false when it does not meet.
+        #@raise [ArgumentError] Data input is not a not qualifiers
         #
         def self.ok?(key, values, data)
             sign, threshold = values
@@ -61,7 +61,7 @@ module DSN
             result = false
             case sign
             when METHOD_NAME
-                # not修飾子を外した中間コードを再度判定
+                # Determining the intermediate code remove the "not" qualifiers again.
                 result = ConditionFactory.ok?(key, values[1], data)
                 return !result
             else

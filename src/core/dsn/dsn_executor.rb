@@ -8,8 +8,8 @@ require_relative './dsn_compiler'
 require_relative './execution/dsn_operator'
 require_relative './execution/dsn_auto_executor'
 
-#= オーバーレイ生成クラス。
-# 周期的にオーバーレイを監視し、チャネルの生成・削除・変更を行う。
+#= Overlay execution class.
+# Periodically monitor the overlay, it create, delete, and change a channel.
 #
 #@author NICT
 #
@@ -21,11 +21,11 @@ class DSNExecutor
         @operators = SyncHash.new()
     end
 
-    # 初期設定
+    # Initial setting
     #
-    #@param [Integer] observe_interval イベント監視の動作周期
-    #@param [Integer] auto_execute_interval 自動実行の動作周期
-    #@param [Integer] msg_level 応答メッセージの出力レベル
+    #@param [Integer] observe_interval       The operation period of the event monitoring
+    #@param [Integer] auto_execute_interval  The operation period of the automatic execution
+    #@param [Integer] msg_level              The output level of the response message
     #
     def setup(middleware_id, observe_interval, auto_execute_interval)
         log_trace(middleware_id, observe_interval, auto_execute_interval)
@@ -33,18 +33,18 @@ class DSNExecutor
         DSNAutoExecutor.setup(auto_execute_interval)
     end
 
-    # オーバーレイ生成API
+    # API for overlay to generate
     #
-    #@param [String] overlay_id オーバーレイ名
-    #@param [String] dsn_desc DSN記述
-    #@raise [InternalServerError] 中間コードのパースに失敗した場合
-    #                             (例: dsn_hash["service_links"] が無い)
+    #@param [String] overlay_id  Overlay name
+    #@param [String] dsn_desc    DSN description
+    #@raise [InternalServerError] It failed to analysis of intermediate code
+    #                             (example: dsn_hash["service_links"] is nothing)
     #
     def add_dsn(overlay_id, dsn_desc)
         dsn_hash = DSNCompiler.compile(dsn_desc)
         operator = DSNOperator.new(overlay_id, dsn_hash)
-        # 呼び出し元へはパース終了直後に復帰する。
-        # チャネル生成結果は、メッセージで通知する。
+        # It is to the caller to return immediately after the end of the analysis.
+        # Channel generation results are notified by a message.
         Thread.new do
             log_time()
             begin
@@ -57,9 +57,9 @@ class DSNExecutor
         end
     end
 
-    # オーバーレイ削除API
+    # API for overlay to delete
     #
-    #@param [String] overlay_id オーバーレイ名
+    #@param [String] overlay_id  Overlay ID
     #
     def delete_dsn(overlay_id)
         operator = @operators.delete(overlay_id)
@@ -67,13 +67,13 @@ class DSNExecutor
             raise InvalidIDError, overlay_id
         end
 
-        # チャネル等の削除はTranslatorで行われる。
+        # Removing channel and the like is performed in Translator.
     end
 
-    # オーバーレイ変更API
+    # API for overlay to modify
     #
-    #@param [String] overlay_id オーバーレイID
-    #@param [String] dsn_desc DSN記述
+    #@param [String] overlay_id  Overlay ID
+    #@param [String] dsn_desc    DSN description
     #
     def modify_dsn(overlay_id, dsn_desc)
         operator = @operators[overlay_id]
@@ -93,7 +93,10 @@ class DSNExecutor
         end
     end
 
-    # 周期的にオーバーレイ状態を更新する。
+    # Periodically update the overlay state.
+    #
+    #@param [String] overlay_id   Overlay ID
+    #@param [Hash]   event_state  Event state
     #
     def update_overlay(overlay_id, event_state)
         log_time()
@@ -101,14 +104,14 @@ class DSNExecutor
             operator = @operators[overlay_id]
             operator.update_overlay(event_state)
         rescue
-            # オーバーレイでエラーが発生しても、
-            # 他の正常なオーバーレイの実行に影響しない。
+            # Even if an error occurs in the overlay, 
+            # it does not affect the execution of other normal overlay.
             log_error("Update overlay(#{overlay_id}) failed.", $!)
         end
         log_time()
     end
 
-    # インスタンスメソッドをクラスに委譲
+    # Delegate instance method to class
     class << self
         extend Forwardable
         def_delegators :instance, *DSNExecutor.instance_methods(false)
