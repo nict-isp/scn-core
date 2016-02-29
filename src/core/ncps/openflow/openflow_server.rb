@@ -1,10 +1,14 @@
 #-*- coding: utf-8 -*-
+#
+# Copyright (c) 2016, National Institute of Information and Communications Technology. All rights reserved. 
+# GPL3, see LICENSE for more details. 
+#
 require 'eventmachine'
 
 require_relative '../../utils'
 require_relative './openflow_settings'
 
-#= OpenFlowＣｏｎｔｒｏｌｌｅｒからのコマンド受信用サーバ
+#= OpenFlowコントローラからのコマンド受信用サーバ
 #@author NICT
 #
 class OpenflowServer < EM::Connection

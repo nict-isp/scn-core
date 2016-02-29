@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2016, National Institute of Information and Communications Technology. All rights reserved. 
+# GPL3, see LICENSE for more details. 
+#
 require_relative './service/service'
 require_relative './path_creator'
 require_relative '../utility/collector'

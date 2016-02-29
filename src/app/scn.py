@@ -2,6 +2,9 @@
 """ scn.py
  @brief  SCN middleware API for Python
  @author NICT
+
+ Copyright (c) 2016, National Institute of Information and Communications Technology. All rights reserved. 
+ GPL3, see LICENSE for more details. 
 """
 import sys
 import msgpackrpc

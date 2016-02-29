@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2016, National Institute of Information and Communications Technology. All rights reserved. 
+# GPL3, see LICENSE for more details. 
+#
 require_relative './service'
 require_relative './communication'
 require_relative './dsn_text'

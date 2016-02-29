@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2016, National Institute of Information and Communications Technology. All rights reserved. 
+# GPL3, see LICENSE for more details. 
+#
 require_relative '../utils'
 require_relative './ncps_if'
 require_relative './openflow/ncps_for_openflow'
