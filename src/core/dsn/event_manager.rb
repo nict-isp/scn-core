@@ -58,15 +58,18 @@ class EventManager
 
     # To execute the state monitoring
     #
-    #@param [Array<Hash>] data  Received data
+    #@param [Array<Hash>] datas  Received data
     #@return [Array<Hash>] Received data it execute the reception process
     #
-    def observe(overlay_id, channel_name, data)
-        log_trace(overlay_id, channel_name, data)
+    def observe(overlay_id, channel_name, datas)
+        log_trace(overlay_id, channel_name, datas)
         trigger = @triggers[overlay_id]
         unless trigger.nil?
-            if M2MFormat.formatted?(data)
-                data_list = M2MFormat.get_values(data)
+            if M2MFormat.formatted?(datas)
+                data_list = []
+                datas.each do |data|
+                    data_list = data_list + M2MFormat.get_values(data)
+                end
             else
                 data_list = data
             end
